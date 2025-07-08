@@ -17,14 +17,50 @@ install_oh_my_zsh() {
     git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 }
 
-setup_github() {
-    ssh-keygen -t ed25519 -C 'zachmumbauer@gmail.com' -f ~/.ssh/github-primary
-    ssh-add -K ~/.ssh/github-primary
-    echo '\nHost github.com\n HostName github.com\n User git\n IdentityFile ~/.ssh/github-primary\n IdentitiesOnly yes' >> ~/.ssh/config
-    echo "Rembember to add your ssh key to github"
-    echo "  You can use this command: `pbcopy < ~/.ssh/github-primary.pub`"
-    git config --global user.email "zachmumbauer@gmail.com"
-    git config --global user.name "Zach Mumbauer"
+configure_github_interactively() {
+    echo "================================================================================"
+    echo "                           GitHub Setup Instructions                            "
+    echo "================================================================================"
+    echo "This script will guide you through setting up your GitHub SSH key and Git config."
+    echo "Please provide the requested information."
+    echo ""
+
+    read -p "Enter your GitHub email address (e.g., your_email@example.com): " github_email
+    read -p "Enter your GitHub username (e.g., octocat): " github_username
+
+    echo ""
+    echo "1. Generating SSH key..."
+    ssh-keygen -t ed25519 -C "$github_email" -f ~/.ssh/github_id_ed25519 -N ""
+    echo "SSH key generated at ~/.ssh/github_id_ed25519"
+    echo ""
+
+    echo "2. Adding SSH key to ssh-agent..."
+    ssh-add ~/.ssh/github_id_ed25519
+    echo "SSH key added to agent."
+    echo ""
+
+    echo "3. Configuring global Git user name and email..."
+    git config --global user.name "$github_username"
+    git config --global user.email "$github_email"
+    echo "Git global config set."
+    echo ""
+
+    echo "4. Appending GitHub SSH config to ~/.ssh/config..."
+    echo "" >> ~/.ssh/config
+    echo "Host github.com" >> ~/.ssh/config
+    echo "  HostName github.com" >> ~/.ssh/config
+    echo "  User git" >> ~/.ssh/config
+    echo "  IdentityFile ~/.ssh/github_id_ed25519" >> ~/.ssh/config
+    echo "  IdentitiesOnly yes" >> ~/.ssh/config
+    echo "GitHub SSH config appended to ~/.ssh/config."
+    echo ""
+
+    echo "================================================================================"
+    echo "IMPORTANT: Please add your new SSH public key to your GitHub account."
+    echo "You can copy it using: pbcopy < ~/.ssh/github_id_ed25519.pub"
+    echo "Then, go to GitHub -> Settings -> SSH and GPG keys -> New SSH key and paste it."
+    echo "================================================================================"
+    echo ""
 }
 
 
@@ -34,6 +70,8 @@ sym_link_configs() {
     ln -s ${PWD}/config_files/vimrc ~/.vimrc
     ln -s ${PWD}/config_files/gitconfig ~/.gitconfig
     ln -s ${PWD}/config_files/tmux.conf ~/.tmux.conf
+    ln -s ${PWD}/config_files/aliases.zsh ~/.aliases.zsh
+    ln -s ${PWD}/config_files/zshrc_env ~/.zshrc_env
     ln -s ${PWD}/vim ~/.vim
     # todo: clone the nvim repo
     ln -s ${PWD}/../nvim ~/.config/nvim
@@ -69,4 +107,9 @@ install_asdf_libraries
 install_nvim_package_manager
 install_tmux_plugin_manager
 install_xcode_cli # This should be last since it requires user input in the pop-up window 
-cat ${PWD}/post_install.txt
+echo "
+================================================================================"
+echo "IMPORTANT: Please review the post_install.txt file for manual steps:"
+echo "           ${PWD}/post_install.txt"
+echo "================================================================================"
+
