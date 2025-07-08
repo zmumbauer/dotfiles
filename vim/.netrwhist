@@ -1,0 +1,5 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =3
+let g:netrw_dirhist_3='/Users/zachmumbauer/code/weather_report_tutorial'
+let g:netrw_dirhist_2='/Users/zachmumbauer/code'
+let g:netrw_dirhist_1='/Users/zachmumbauer/.oh-my-zsh'

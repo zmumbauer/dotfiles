@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# This script will setup a new mac with my preferred settings and apps
+install_homebrew() {
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+}
+
+install_homebrew_packages() {
+    brew install $(<${PWD}/brew_formulae.txt)
+    brew install --cask $(<${PWD}/brew_casks.txt)
+}
+
+install_oh_my_zsh() {
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+}
+
+setup_github() {
+    ssh-keygen -t ed25519 -C 'zachmumbauer@gmail.com' -f ~/.ssh/github-primary
+    ssh-add -K ~/.ssh/github-primary
+    echo '\nHost github.com\n HostName github.com\n User git\n IdentityFile ~/.ssh/github-primary\n IdentitiesOnly yes' >> ~/.ssh/config
+    echo "Rembember to add your ssh key to github"
+    echo "  You can use this command: `pbcopy < ~/.ssh/github-primary.pub`"
+    git config --global user.email "zachmumbauer@gmail.com"
+    git config --global user.name "Zach Mumbauer"
+}
+
+
+sym_link_configs() {
+    ln -s ${PWD}/config_files/zshrc ~/.zshrc
+    ln -s ${PWD}/config_files/p10k.zsh ~/.p10k.zsh
+    ln -s ${PWD}/config_files/vimrc ~/.vimrc
+    ln -s ${PWD}/config_files/gitconfig ~/.gitconfig
+    ln -s ${PWD}/config_files/tmux.conf ~/.tmux.conf
+    ln -s ${PWD}/vim ~/.vim
+    # todo: clone the nvim repo
+    ln -s ${PWD}/../nvim ~/.config/nvim
+}
+
+install_asdf_libraries() {
+    asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
+    asdf install ruby latest
+
+    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+    asdf install nodejs latest
+}
+
+install_xcode_cli() {
+    xcode-select --install
+}
+
+install_nvim_package_manager() {
+	git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+	~/.local/share/nvim/site/pack/packer/start/packer.nvim
+}
+
+install_tmux_plugin_manager() {
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+}
+
+install_homebrew
+install_homebrew_packages
+install_oh_my_zsh
+setup_github
+sym_link_configs
+install_asdf_libraries
+install_nvim_package_manager
+install_tmux_plugin_manager
+install_xcode_cli # This should be last since it requires user input in the pop-up window 
+cat ${PWD}/post_install.txt

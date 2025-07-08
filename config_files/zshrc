@@ -1,0 +1,215 @@
+# ==============================================================================
+# ENVIRONMENT
+# ==============================================================================
+
+# Path to your oh-my-zsh installation.
+export ZSH="/Users/zachmumbauer/.oh-my-zsh"
+
+# Path modifications
+export PATH="$HOME/bin:/usr/local/bin:$PATH"
+export PATH="$PATH:/Users/zachmumbauer/.local/bin"
+export PATH="/usr/local/texlive/2025/bin/universal-darwin:$PATH"
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+# Set Default Editor
+export EDITOR=nvim
+
+# Export display for ImageMagick
+export DISPLAY=:0
+
+# iCloud Drive location
+export ICLOUD="/Users/zachmumbauer/Library/Mobile Documents/com~apple~CloudDocs"
+
+# Credentials
+export QUICKBOOKS_EMAIL="elkslodge2337"
+
+# Other configurations
+export LESS=FRX
+
+# ==============================================================================
+# OH MY ZSH
+# ==============================================================================
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Theme
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Plugins
+plugins=(
+  1password
+  aliases
+  asdf
+  brew
+  bundler
+  colored-man-pages
+  command-not-found
+  common-aliases
+  docker
+  docker-compose
+  dotenv
+  eza
+  extract
+  gh
+  git
+  git-commit
+  git-extras
+  history
+  hitchhiker
+  iterm2
+  kubectl
+  last-working-dir
+  macos
+  nmap
+  qrcode
+  rails
+  rake
+  ruby
+  ssh
+  sudo
+  systemadmin
+  terraform
+  thor
+  tmux
+  vscode
+  web-search
+  yarn
+  zsh-autosuggestions
+  zsh-interactive-cd
+  zsh-syntax-highlighting
+)
+
+# Auto-start tmux
+ZSH_TMUX_AUTOSTART=true
+
+# Source Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# ==============================================================================
+# ALIASES
+# ==============================================================================
+
+if [ -f /Users/zachmumbauer/code/mac_setup_boilerplate/config_files/aliases.zsh ]; then
+  source /Users/zachmumbauer/code/mac_setup_boilerplate/config_files/aliases.zsh
+fi
+
+# ==============================================================================
+# FUNCTIONS
+# ==============================================================================
+
+# Load QuickBooks credentials on-demand
+load_quickbooks_creds() {
+  export QUICKBOOKS_PASSWORD=$(op read "op://Elks Treasurer/Elks Quickbooks/password")
+  echo "QuickBooks credentials loaded for this session."
+}
+
+# Returns the portion of a command's man page describing an option.
+manopt() {
+  local cmd=$1 opt=$2
+  [[ $opt == -* ]] || { (( ${#opt} == 1 )) && opt="-$opt" || opt="--$opt"; }
+  man "$cmd" | col -b | awk -v opt="$opt" -v RS= '$0 ~ "(^|,)[[:blank:]]+" opt "([[:punct:][:space:]]|$)"'
+}
+
+# Create a GitHub pull request.
+prc() {
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  local upstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+
+  if [[ -z "$1" ]]; then
+    echo "❌ Please provide a PR title."
+    echo "Usage: create-pr \"Fix something awesome\""
+    return 1
+  fi
+
+  if [[ -z "$upstream" ]]; then
+    echo "📤 Branch not pushed — pushing to origin/$branch..."
+    git push -u origin "$branch" || return 1
+  fi
+
+  gh pr create -t "$*" -B main -b ""
+}
+
+# Install the latest patch release of a given Ruby version and set it as the global or local version.
+asdfirb() {
+  local major_minor=$1
+  local scope=${2:-global}  # or "local"
+  local latest_patch
+
+  if [[ -z "$major_minor" ]]; then
+    echo "Usage: asdf_install_latest_patch_and_set <major.minor> [global|local]"
+    return 1
+  fi
+
+  echo "Finding latest Ruby $major_minor.x version..."
+  latest_patch=$(asdf list all ruby | grep "^${major_minor}\." | tail -1)
+
+  if [[ -z "$latest_patch" ]]; then
+    echo "❌ No matching version found for Ruby $major_minor"
+    return 1
+  fi
+
+  echo "👉 Installing Ruby $latest_patch..."
+  asdf install ruby "$latest_patch"
+
+  echo "✅ Setting Ruby $latest_patch as $scope version..."
+  asdf "$scope" ruby "$latest_patch"
+
+  # Update .tool-versions manually (for clarity or local scope)
+  if [[ "$scope" == "local" ]]; then
+    sed -i '' '/^ruby/d' .tool-versions 2>/dev/null  # macOS-compatible
+    echo "ruby $latest_patch" >> .tool-versions
+  elif [[ "$scope" == "global" ]]; then
+    asdf global ruby "$latest_patch"  # also persists
+  fi
+
+  echo "🎉 Done! Using Ruby $latest_patch ($scope)"
+}
+
+# ==============================================================================
+# INITIALIZATION
+# ==============================================================================
+
+# Lazy-load asdf
+if [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
+  lazy_load() {
+    local command_name="$1"
+    local-exec "$command_name"() {
+      unfunction "$command_name"
+      . /opt/homebrew/opt/asdf/libexec/asdf.sh
+      "$command_name" "$@"
+    }
+  }
+  lazy_load asdf
+fi
+
+# Optimized compinit
+autoload -Uz compinit
+if [ -n "~/.zcompdump"(N.mh+24) ]; then
+  compinit -i
+else
+  compinit -C
+fi
+
+# Powerlevel10k
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Fabric
+if [ -f "/Users/zachmumbauer/.config/fabric/fabric-bootstrap.inc" ]; then
+  . "/Users/zachmumbauer/.config/fabric/fabric-bootstrap.inc"
+fi
+
+# Lazy-load conda
+if [ -x "/opt/anaconda3/bin/conda" ]; then
+  lazy_load_conda() {
+    local command_name="$1"
+    local-exec "$command_name"() {
+      unfunction "$command_name"
+      eval "$("/opt/anaconda3/bin/conda" 'shell.zsh' 'hook' 2> /dev/null)"
+      "$command_name" "$@"
+    }
+  }
+  lazy_load_conda conda
+fi

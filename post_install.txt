@@ -1,0 +1,18 @@
+Here's some things you need to do manually:
+
+    In iterm2:
+        - Update the font to `Source Code Pro for Powerline`
+        - Import the settings stored in this project
+    
+    Install these applications:
+        - [Spark](https://apps.apple.com/us/app/spark-email-app-by-readdle/id1176895641?mt=12)
+        - [Evernote](https://apps.apple.com/us/app/evernote/id406056744?mt=12)
+        - [Magnet](https://apps.apple.com/us/app/magnet/id441258766?mt=12)
+        - [Cactus VPN](https://www.cactusvpn.com/)
+        - [Amphetamine](https://apps.apple.com/us/app/amphetamine/id937984704?mt=12)
+        - [Omnifocus](https://apps.apple.com/us/app/omnifocus-3/id1346203938?mt=12)
+        - [Fantastical](https://apps.apple.com/us/app/fantastical-calendar/id975937182?mt=12)
+        - [Flow](https://apps.apple.com/us/app/flow-focus-pomodoro-timer/id1423210932)
+        - [Logitech Capture](https://www.logitech.com/en-us/software/capture.html)
+        - Adobe Suite
+        - Wacom
