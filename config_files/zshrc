@@ -72,7 +72,6 @@ plugins=(
   web-search
   yarn
   zsh-autosuggestions
-  zsh-interactive-cd
   zsh-syntax-highlighting
 )
 
@@ -182,6 +181,8 @@ if [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
   lazy_load asdf
 fi
 
+fpath=("$HOME/.docker/completions" $fpath)
+
 # Optimized compinit
 autoload -Uz compinit
 if [ -n "~/.zcompdump"(N.mh+24) ]; then
@@ -189,9 +190,6 @@ if [ -n "~/.zcompdump"(N.mh+24) ]; then
 else
   compinit -C
 fi
-
-
-
 
 
 # Lazy-load conda
@@ -206,11 +204,6 @@ if [ -x "/opt/anaconda3/bin/conda" ]; then
   }
   lazy_load_conda conda
 fi
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=("$HOME/.docker/completions" $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
 
 # Oh My Posh
 eval "$(oh-my-posh init zsh --config /opt/homebrew/opt/oh-my-posh/themes/kushal.omp.json)"
