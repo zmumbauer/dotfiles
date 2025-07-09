@@ -197,15 +197,22 @@ asdfirb() {
 # ==============================================================================
 
 # Lazy-load asdf
-if [ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ]; then
+if command -v brew &>/dev/null && [ -f "$(brew --prefix asdf)/libexec/asdf.sh" ]; then
+  ASDF_PATH="$(brew --prefix asdf)/libexec/asdf.sh"
+elif [ -f "$HOME/.asdf/asdf.sh" ]; then
+  ASDF_PATH="$HOME/.asdf/asdf.sh"
+else
+  ASDF_PATH=""
+fi
+
+if [ -n "$ASDF_PATH" ]; then
   lazy_load() {
     local command_name="$1"
     local-exec "$command_name"() {
-      # Check if the function exists before unsetting it
       if functions "$command_name" >/dev/null; then
         unfunction "$command_name"
       fi
-      . /opt/homebrew/opt/asdf/libexec/asdf.sh
+      . "$ASDF_PATH"
       "$command_name" "$@"
     }
   }
