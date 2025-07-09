@@ -13,3 +13,5 @@ alias gfp="git add . && git commit --amend --no-edit && gp -f"
 alias gi="gemini"
 alias cl="claude"
 alias ls='eza --long --header --icons --git'
+alias rgs="rg --color=always --line-number --smart-case --hidden --glob '!{.git,node_modules,venv,dist,build}'"
+alias kill-panel="tmux kill-pane -t"

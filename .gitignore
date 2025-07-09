@@ -1,2 +1,4 @@
 config_files/zshrc_env
 config_files/gitconfig
+.zshrc.local
+.DS_Store
