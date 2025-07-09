@@ -1,3 +1,6 @@
 [submodule "nvim"]
 	path = nvim
 	url = https://github.com/zmum/nvim
+[submodule "config_files/ohmytmux"]
+	path = config_files/ohmytmux
+	url = https://github.com/gpakosz/.tmux.git
