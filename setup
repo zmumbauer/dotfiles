@@ -74,7 +74,9 @@ sym_link_configs() {
     ln -s ${PWD}/config_files/zshrc_env ~/.zshrc_env
     ln -s ${PWD}/vim ~/.vim
     # todo: clone the nvim repo
-    ln -s ${PWD}/../nvim ~/.config/nvim
+    ln -s ${PWD}/nvim ~/.config/nvim
+    mkdir -p ~/Library/Application\ Support/eza
+    ln -s ${PWD}/config_files/eza/themes/tokyonight.yml ~/Library/Application\ Support/eza/theme.yml
 }
 
 install_asdf_libraries() {

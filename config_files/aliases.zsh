@@ -12,3 +12,4 @@ alias prm="gh pr merge -md"
 alias gfp="git add . && git commit --amend --no-edit && gp -f"
 alias gi="gemini"
 alias cl="claude"
+alias ls='eza --long --header --icons --git'
