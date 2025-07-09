@@ -215,3 +215,4 @@ zeromq
 zimg
 zsh
 zstd
+jandedobbeleer/oh-my-posh/oh-my-posh

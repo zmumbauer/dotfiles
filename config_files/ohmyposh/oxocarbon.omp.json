@@ -1,0 +1,87 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "properties": {
+            "cache_duration": "none",
+            "style": "full"
+          },
+          "foreground": "#161616",
+          "powerline_symbol": "\ue0b0",
+          "background": "#81a1c1",
+          "type": "path",
+          "style": "powerline"
+        },
+        {
+          "properties": {
+            "ahead_icon": "\ue0b2 ",
+            "behind_icon": "\ue0b3 ",
+            "bisect_icon": "\ue0b9 ",
+            "branch_icon": "\ue0a0 ",
+            "cache_duration": "none",
+            "cherry_pick_icon": "\ue0b7 ",
+            "clean_icon": "\uf00c ",
+            "commit_icon": "\uf417 ",
+            "diverged_icon": "\ue0b4 ",
+            "has_no_upstream_icon": "\uf00d ",
+            "merge_icon": "\ue0b6 ",
+            "rebase_icon": "\ue0b5 ",
+            "revert_icon": "\ue0b8 ",
+            "stash_icon": "\uf692 ",
+            "status_colors": {
+              "ahead": "#85d3c2",
+              "behind": "#ff8389",
+              "clean": "#85d3c2",
+              "conflicted": "#ff8389",
+              "diverged": "#ff8389",
+              "modified": "#a5e2ff",
+              "staged": "#6fdc8c",
+              "untracked": "#f4f994"
+            },
+            "tag_icon": "\uf412 ",
+            "untracked_icon": "\uf068 "
+          },
+          "foreground": "#161616",
+          "powerline_symbol": "\ue0b0",
+          "background": "#85d3c2",
+          "type": "git",
+          "style": "powerline"
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "right",
+      "segments": [
+        {
+          "properties": {
+            "always_enabled": true,
+            "cache_duration": "none"
+          },
+          "foreground": "#161616",
+          "powerline_symbol": "\ue0b2",
+          "background": "#c2a9ff",
+          "type": "status",
+          "style": "powerline"
+        },
+        {
+          "properties": {
+            "cache_duration": "none",
+            "time_format": "15:04:05"
+          },
+          "foreground": "#161616",
+          "powerline_symbol": "\ue0b2",
+          "background": "#d4a5ff",
+          "type": "time",
+          "style": "powerline"
+        }
+      ]
+    }
+  ],
+  "version": 3,
+  "final_space": true
+}
