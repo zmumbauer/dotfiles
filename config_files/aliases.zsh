@@ -1,4 +1,4 @@
-alias sc="source ~/.zshrc"
+alias scz="source ~/.zshrc"
 alias zshe="vim ~/.zshrc"
 alias clc="fc -ln -1 | awk '{$1=$1}1' | pbcopy"
 alias vim="nvim"
