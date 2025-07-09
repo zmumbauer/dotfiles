@@ -30,13 +30,7 @@ export LESS=FRX
 # OH MY ZSH
 # ==============================================================================
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
 
-# Theme
-ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Plugins
 plugins=(
@@ -196,8 +190,7 @@ else
   compinit -C
 fi
 
-# Powerlevel10k
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
 
 
 
@@ -218,3 +211,6 @@ fpath=("$HOME/.docker/completions" $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
+
+# Oh My Posh
+eval "$(oh-my-posh init zsh --config /opt/homebrew/opt/oh-my-posh/themes/kushal.omp.json)"
