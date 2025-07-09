@@ -1,6 +1,7 @@
 [submodule "nvim"]
 	path = nvim
 	url = https://github.com/zmumbauer/nvim
+	branch = main
 [submodule "config_files/ohmytmux"]
 	path = config_files/ohmytmux
-	url = https://github.com/gpakosz/.tmux.git
+	url = https://github.com/zmumbauer/ohmytmux
