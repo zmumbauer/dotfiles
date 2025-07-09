@@ -69,7 +69,8 @@ sym_link_configs() {
     ln -s ${PWD}/config_files/p10k.zsh ~/.p10k.zsh
     ln -s ${PWD}/config_files/vimrc ~/.vimrc
     ln -s ${PWD}/config_files/gitconfig ~/.gitconfig
-    ln -s ${PWD}/config_files/tmux.conf ~/.tmux.conf
+    ln -s ${PWD}/config_files/ohmytmux/.tmux.conf ~/.tmux.conf
+    ln -s ${PWD}/config_files/ohmytmux/.tmux.conf.local ~/.tmux.conf.local
     ln -s ${PWD}/config_files/aliases.zsh ~/.aliases.zsh
     ln -s ${PWD}/config_files/zshrc_env ~/.zshrc_env
     ln -s ${PWD}/vim ~/.vim
