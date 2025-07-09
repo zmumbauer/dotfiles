@@ -7,6 +7,11 @@ export DOTFILES_PATH="$(dirname $(dirname $(readlink -f ${(%):-%N})))"
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
+# Local configuration overrides (must be before oh-my-zsh.sh)
+if [ -f ~/.zshrc.local ]; then
+  source ~/.zshrc.local
+fi
+
 # Path modifications
 export PATH="$HOME/bin:/usr/local/bin:$PATH"
 export PATH="$PATH:$HOME/.local/bin"
@@ -99,13 +104,7 @@ if [ -f ~/.zshrc_env ]; then
   source ~/.zshrc_env
 fi
 
-# ==============================================================================
-# LOCAL CONFIGURATION (overrides)
-# ==============================================================================
 
-if [ -f ~/.zshrc.local ]; then
-  source ~/.zshrc.local
-fi
 
 # ==============================================================================
 # FUNCTIONS
