@@ -15,6 +15,7 @@ docker-desktop
 fig
 firefox
 fleet
+font-roboto-mono-nerd-font
 gimp
 google-chrome
 gpg-suite
