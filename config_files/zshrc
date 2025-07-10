@@ -5,7 +5,7 @@
 export DOTFILES_PATH="$(dirname $(dirname $(readlink -f ${(%):-%N})))"
 
 # Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="${DOTFILES_PATH}/config_files/ohmyzsh"
 
 # Local configuration overrides (must be before oh-my-zsh.sh)
 if [ -f ~/.zshrc.local ]; then
@@ -85,8 +85,9 @@ plugins=(
 # Auto-start tmux
 ZSH_TMUX_AUTOSTART=true
 
-# Source Oh My Zsh
-source $ZSH/oh-my-zsh.sh
+source "${ZSH}/oh-my-zsh.sh"
+
+
 
 # ==============================================================================
 # ALIASES
@@ -110,7 +111,16 @@ fi
 # FUNCTIONS
 # ==============================================================================
 
+# Function to update dotfiles and submodules
+function update_dotfiles() {
+  echo "Updating dotfiles repository..."
+  git -C "${DOTFILES_PATH}" pull origin main
 
+  echo "Updating submodules..."
+  git -C "${DOTFILES_PATH}" submodule update --init --recursive
+
+  echo "Dotfiles and submodules updated!"
+}
 
 # SYNOPSIS
 #   manopt command opt
