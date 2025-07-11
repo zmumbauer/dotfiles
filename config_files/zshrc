@@ -208,6 +208,18 @@ asdfirb() {
 # INITIALIZATION
 # ==============================================================================
 
+# Lazy-load nvm
+if [ -f ~/.nvm.zsh ]; then
+  source ~/.nvm.zsh
+fi
+
+
+# Lazy-load nvm
+if [ -f ~/.nvm.zsh ]; then
+  source ~/.nvm.zsh
+fi
+
+
 # Lazy-load asdf
 if command -v brew &>/dev/null && [ -f "$(brew --prefix asdf)/libexec/asdf.sh" ]; then
   ASDF_PATH="$(brew --prefix asdf)/libexec/asdf.sh"
