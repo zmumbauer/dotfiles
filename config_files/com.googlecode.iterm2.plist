@@ -265,6 +265,8 @@
 	</dict>
 	<key>Default Bookmark Guid</key>
 	<string>47BB4298-5924-4711-9CB1-5502BE8CAA92</string>
+	<key>EnableAPIServer</key>
+	<true/>
 	<key>HapticFeedbackForEsc</key>
 	<false/>
 	<key>HideFromDockAndAppSwitcher</key>
@@ -1011,7 +1013,7 @@
 			<key>Description</key>
 			<string>Default</string>
 			<key>Disable Window Resizing</key>
-			<true/>
+			<false/>
 			<key>Flashing Bell</key>
 			<false/>
 			<key>Foreground Color</key>
