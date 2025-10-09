@@ -281,3 +281,8 @@ fi
 
 # Oh My Posh
 eval "$(oh-my-posh init zsh --config ${DOTFILES_PATH}/config_files/ohmyposh/kushal.omp.json)"
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=(~/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions
