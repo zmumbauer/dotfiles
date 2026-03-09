@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "source_document": "Gear included in AmpliTube 5 MAX v2",
+    "source_type": "pdf",
+    "extraction_status": "validated",
+    "declared_counts": {
+      "STOMP": 111,
+      "AMP": 111,
+      "CAB": 106,
+      "SPEAKER": 33,
+      "MIC": 18,
+      "RACK": 48,
+      "ROOM": 8,
+      "TOTAL": 435
+    },
+    "extracted_counts": {
+      "STOMP": 111,
+      "AMP": 111,
+      "CAB": 106,
+      "SPEAKER": 33,
+      "MIC": 18,
+      "RACK": 48,
+      "ROOM": 8,
+      "TOTAL": 435
+    },
+    "count_validation_passed": true,
+    "generated_from_pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+  },
+  "inventory": {
+    "STOMP": [
+      "/Delay", "10 Band Graphic", "6 Band EQ", "7 Band Graphic", "Acoustic Sim", "Ampless", "Analog Chorus", "Analog Delay", "Analog Flanger", "Bass Wah", "Big Pig", "Booster", "Chorus", "Chorus-1", "Class Fuzz", "Compressor", "Contour Wah", "Crusher", "Dcomp", "Delay", "Dime Noise Gate", "Dime Wah", "Diode Overdrive", "Distortion", "EchoMan", "Electric Flanger", "Envelope Filter", "Envelope Filter", "EP Tape Echo", "Feedback", "Fender® '63 Reverb",
+      "Fender® Blender", "Fender® Compressor", "Fender® Fuzz Wah", "Fender® Phaser", "Fender® Tape Echo", "Fender® Tremolo", "Fender® Volume", "Fender® Wah", "Flanger", "Flanger Doubler", "FOX Phaser", "Fuzz Age", "Fuzz Age 2", "FuzzOne", "Gate", "Harmonator", "LFO Filter", "May Wah", "Metal Distortion", "Metal Distortion 2", "Metal Flanger", "Nirvana", "Noise Gate", "Nu-Tron III", "OCD", "Octa-V", "Octav", "OctoBlue", "Opto Tremolo", "Overdrive", "OverScream",
+      "Phaze Nine", "Phazer 10", "Pinnacle Deluxe", "Pitch Shifter", "Power Grid", "Pre EQ 3", "PROdrive", "Red Special", "Rezo", "Right Fuzz", "Satch Distortion", "Satch Octave", "Satch Overdrive", "Satch Wah", "Seek Trem", "Seek Wah", "Small Phazer", "Shape Shifter", "SSTE - Solid State Tape Echo", "Star Gate", "Step Filter", "Step Slicer", "SVX Compressor", "SVX-OCT", "SVX-OD", "SVX Volume", "Swell", "T-Rex Moller", "T-Rex Mudhoney", "T-Rex Replica", "Tap Delay",
+      "The Ambass’dor", "Treble Booster", "Tube Overdrive", "Uni-V", "VariDiode+", "Volume", "Wah", "Wah 10", "Wah 46", "Wah 47", "WahDist", "Wharmonator", "X-Chorus", "XS Fuzz", "X-DRIVE", "X-TIME", "X-SPACE", "X-VIBE"
+    ],
+    "AMP": [
+      "'57 Bandmaster", "'57 Champ", "'65 Princeton", "'57 Custom Champ", "'57 Custom Deluxe", "'57 Custom Pro-Amp", "'57 Custom Twin-Amp", "'65 Super Reverb", "'53 Bassman", "'57 Deluxe", "'59 Bassman", "'64 Vibroverb Custom", "'65 Deluxe Reverb", "'65 Twin Reverb", "122", "122A", "147", "3300W", "360Bass Preamp", "AD 200", "AD 30", "AFD 100", "American Clean MKIII", "American Lead MKIII", "American Tube Clean 1", "American Tube Clean 2", "American Tube Vintage", "American Vintage B", "American Vintage D", "American Vintage T", "Bassman 300",
+      "BM 30", "BM DK", "Boston 100", "Brit 8000", "Brit 9000", "Brit Silver", "Brit Valve Pre", "British Blue Tube 30TB", "British Copper 30TB", "British Lead S100", "British Tube Lead 1", "British Tube Lead 2", "California Tweed", "Champion 600", "Custom Modern Hi-Gain", "Custom Solid State Clean", "Custom Solid State Fuzz", "Custom Solid State Lead", "Darrell 100", "Dual Rectifier", "Dual Terror", "E650", "G37/Studio12", "German 34", "Green BA250", "HiAmp", "Jazz Amp 120", "Jazz Amp 120 CFH", "JCA100H", "JCA20H", "JCM Slash",
+      "JH 1200", "JH Gold", "Mark IIC+", "Mark III", "Mark IV", "Mark V", "MAZ 18 Jr.", "MB 150 S", "Metal Clean T", "Metal Lead T", "Metal Lead V", "Metal Lead W", "MH-500 Metalhead", "MiniPlex 20", "Modern Tube Lead", "New York B750", "OR 50", "OR-120", "Powerball", "Pro Junior", "Red Pig", "RockerVerb 50", "Satch VM", "SilverPlate 50", "SilverTwelve", "SJ50", "SLD 100", "Solid State Bass Preamp", "Super-Sonic", "SVX-15N", "SVX-15R",
+      "SVX-4B", "SVX-500", "SVX-CL", "SVX-PRO", "SVX-VR", "TBP-1", "THD Bi-Valve", "Thunderverb 200", "Tiny Terror", "TransAtlantic TA-30", "Triple Crow", "Triple Rectifier", "Tube Vintage Combo", "V3M", "VHandcraft 4", "Vibro-King", "Vintage Metal Lead", "Z Wreck"
+    ],
+    "CAB": [
+      "122", "122A", "147", "1x10 '65 Princeton", "1x10 Pro Junior", "1x10 Vibratone", "1x12 '65 Deluxe Reverb", "1x12 '57 Custom Deluxe", "1x12 '57 Deluxe", "1x12 California Tweed", "1x12 Combo", "1x12 Mark III", "1x12 Mark IV", "1x12 MAZ 18 Jr.", "1x12 MB 150 S", "1x12 MB II", "1x12 MB III", "1x12 Open Modern", "1x12 Open Vintage", "1x12 PPC 112", "1x12 Super-Sonic", "1x12 Tiny Terror", "1x15 '64 Vibroverb Custom", "1x15 '53 Bassman", "1x15 '57 Custom Pro-Amp", "1x15 Bass Vintage", "1x15 OBC 115", "1x15 SVX-B15N", "1x15 SVX-B15R", "1x18 Horn Bass", "1x6 BM DK",
+      "1x6 Champion 600", "1x8 '57 Champ", "1x8 '57 Custom Champ", "2x10 SVX-500", "2x12 '65 Twin Reverb", "2x12 '57 Custom Twin-Amp", "2x12 AD-30", "2x12 BM 30 Blue", "2x12 BM 30 H70", "2x12 California Tweed", "2x12 Closed Vintage", "2x12 Gry British Vint", "2x12 JP Jazz", "2x12 JP Jazz CFH", "2x12 Open SL", "2x12 Open T J120", "2x12 Open Vintage", "2x12 PPC 212", "2x12 PPC OB", "2x12 Recto Horizontal", "2x12 RoadKing", "2x12 SVX-212 AV", "2x12 SVX-212 H", "2x12 TransAtlantic TA-30", "2x12 V3M", "2x12 Z Wreck", "2x15 Closed B J130", "2x15 Closed D J130", "3300W", "3x10 '57 Bandmaster", "3x10 Vibro-King",
+      "4x10 '59 Bassman", "4x10 '65 Super Reverb", "4x10 NY410", "4x10 OBC 410", "4x10 Open Vintage", "4x10 SVX-410B", "4x10+tw Bass", "4x10+tw TE Bass", "4x12 1960AV SL", "4x12 1960BV SL", "4x12 Brit 30", "4x12 Brit 8000", "4x12 Brit 9000", "4x12 Brit Silver", "4x12 Closed 25 C", "4x12 Closed 75 C", "4x12 Closed J120", "4x12 Closed Modern", "4x12 Closed Vintage", "4x12 Darrell 412", "4x12 E 412 PRO XXL", "4x12 E 412 Standard", "4x12 HiAmp", "4x12 Metal F", "4x12 Metal T", "4x12 Metal V", "4x12 MH-412SL", "4x12 Modern M", "4x12 PPC 412", "4x12 Recto Traditional Slant", "4x12 Red Pig",
+      "4x12 RoadKing Black", "4x12 RoadKing Vintage", "4x12 Satch 60", "4x12 Satch Green", "4x12 SVX-410S", "4x12 Vintage M", "8x10 Bass 810 Pro", "8x10 OBC 810", "8x10 SVX-810A", "8x10 SVX-810E", "Boston Cab Sim", "G37", "Studio12"
+    ],
+    "SPEAKER": [
+      "American 12C", "American 12K", "American Alnico", "American Bulldog", "American J40", "American J100", "Brit 100", "Brit 75", "Brit 80", "Brit Alnico B", "Brit Alnico G", "Brit Alnico S", "Brit Anniversary 1", "Brit Anniversary 2", "Brit Darkness", "Brit Green", "Brit Silver", "Brit T12G", "Brit V1", "Brit V2", "Brit V3", "Brit Vintage 16A", "Brit Vintage 16B", "Brit Vintage 8", "California Red", "Custom Fender", "CV GT12-16", "Darrell Panther", "EV Darkness", "HiAmp", "Jazz 12", "Metal V 1200", "Silver Alnico"
+    ],
+    "MIC": [
+      "Bottle 563", "Condenser 12", "Condenser 170", "Condenser 414", "Condenser 67", "Condenser 84", "Condenser 87", "Dynamic 20", "Dynamic 421", "Dynamic 441", "Dynamic 57", "Dynamic 609", "MD1b-FET", "Ribbon 121", "Ribbon 160", "Tube VM", "Velo-8", "Vintage Dynamic 20"
+    ],
+    "RACK": [
+      "AM Modulator", "Analog Chorus", "AutoPan", "Black 76", "Compressor", "Digital Chorus", "Digital Delay", "Digital Flanger", "Digital Reverb", "EQ 81", "EQ PG", "Fender® '63 Reverb", "Filter C", "Filter M", "Filter O", "Filter R", "Filter Formant", "Filter Phaser", "FM Modulator", "Graphic EQ", "Hall Reverb", "Harmonator", "Inverse Reverb", "Parametric EQ", "Parametric EQ 3", "Pitch Shift", "Pitch Shifter", "Plate Reverb", "Rezo", "Room Reverb", "Rotary Speaker",
+      "Saturator-X", "Shimmer Reverb", "Sine Flange", "Step Filter", "Step Slicer", "Stereer Enhancer", "Swell", "Tap Delay", "Tape Cassette", "Tape Echo", "TERC - That 80's Rack Chorus", "Triangle Chorus", "Tube Compressor", "VC-670", "Vintage Program EQ 1A", "Wah", "White-2A"
+    ],
+    "ROOM": [
+      "Amp Closet", "Bathroom", "Garage", "Hall", "Large Studio", "Mid Studio", "Small Studio", "Subway"
+    ]
+  },
+  "lookup_map": {},
+  "duplicates_report": [
+    { "name": "Envelope Filter", "category": "STOMP", "occurrence_count": 2, "pages": [2] },
+    { "name": "Wah", "categories": ["STOMP", "RACK"], "pages": [5, 18] },
+    { "name": "Analog Chorus", "categories": ["STOMP", "RACK"], "pages": [2, 17] },
+    { "name": "Compressor", "categories": ["STOMP", "RACK"], "pages": [2, 17] },
+    { "name": "Harmonator", "categories": ["STOMP", "RACK"], "pages": [3, 17] },
+    { "name": "Pitch Shifter", "categories": ["STOMP", "RACK"], "pages": [4, 17] },
+    { "name": "Rezo", "categories": ["STOMP", "RACK"], "pages": [4, 17] },
+    { "name": "Step Filter", "categories": ["STOMP", "RACK"], "pages": [4, 18] },
+    { "name": "Step Slicer", "categories": ["STOMP", "RACK"], "pages": [4, 18] },
+    { "name": "Swell", "categories": ["STOMP", "RACK"], "pages": [4, 18] },
+    { "name": "Tap Delay", "categories": ["STOMP", "RACK"], "pages": [4, 18] },
+    { "name": "Fender® '63 Reverb", "categories": ["STOMP", "RACK"], "pages": [2, 17] },
+    { "name": "122", "categories": ["AMP", "CAB"], "pages": [6, 10] },
+    { "name": "122A", "categories": ["AMP", "CAB"], "pages": [6, 10] },
+    { "name": "147", "categories": ["AMP", "CAB"], "pages": [6, 10] },
+    { "name": "3300W", "categories": ["AMP", "CAB"], "pages": [6, 11] }
+  ],
+  "unresolved_items": []
+}
