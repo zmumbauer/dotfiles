@@ -18,3 +18,13 @@ alias kill-panel="tmux kill-pane -t"
 
 alias cf="pbcopy <"
 alias co="fc -ln -1 | pbcopy"
+
+export BAT_THEME="Coldark-Cold"
+
+if command -v bat >/dev/null 2>&1; then
+  alias cat='bat --style=plain --paging=never'
+  alias ccat='bat --theme="Coldark-Cold" --style=full --paging=always'
+elif command -v batcat >/dev/null 2>&1; then
+  alias cat='batcat --style=plain --paging=never'
+  alias ccat='batcat --theme="Coldark-Cold" --style=full --paging=always'
+fi
