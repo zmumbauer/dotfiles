@@ -124,13 +124,14 @@ fi
 # Function to update dotfiles and submodules
 function update_dotfiles() {
   echo "Updating dotfiles repository..."
-  git -C "${DOTFILES_PATH}" pull origin main
+  git -C "${DOTFILES_PATH}" pull --ff-only origin main || return 1
 
-  echo "Updating submodules..."
-  git -C "${DOTFILES_PATH}" submodule update --init --recursive
+  echo "Syncing submodules..."
+  git -C "${DOTFILES_PATH}" submodule sync --recursive || return 1
+  git -C "${DOTFILES_PATH}" submodule update --init --recursive || return 1
 
-  # Update each submodule from its origin
-  git -C "${DOTFILES_PATH}" submodule foreach 'git pull origin $(git rev-parse --abbrev-ref HEAD)'
+  echo "Updating submodules to their configured branches..."
+  git -C "${DOTFILES_PATH}" submodule update --remote --recursive || return 1
 
   echo "Dotfiles and submodules updated!"
 }
