@@ -1,3 +1,4 @@
+ant
 aom
 apr
 apr-util
@@ -8,6 +9,7 @@ asdf
 autoconf
 automake
 awscli
+bat
 bfg
 brotli
 ca-certificates
@@ -19,11 +21,14 @@ cmake
 coreutils
 cryptography
 curl
+czkawka
 dav1d
+exiftool
 eza
 ffmpeg
 fftw
 flac
+flyctl
 fontconfig
 fortune
 freetds
@@ -33,6 +38,7 @@ fribidi
 gcc
 gd
 gdbm
+gemini-cli
 gettext
 gh
 ghostscript
@@ -46,6 +52,7 @@ gnupg
 gnutls
 gpgme
 graphite2
+gum
 harfbuzz
 highway
 htop
@@ -55,10 +62,12 @@ icu4c@77
 imagemagick
 imath
 isl
+ivy
 jasper
 jbig2dec
 jpeg-turbo
 jpeg-xl
+jq
 keyfinder-cli
 krb5
 lame
@@ -119,6 +128,7 @@ libxrender
 libyaml
 libzip
 little-cms2
+llvm
 lpeg
 lua
 luajit
@@ -132,14 +142,17 @@ mpdecimal
 mpfr
 mpg123
 msgpack
+ncdu
 ncurses
 neovim
 net-snmp
 nettle
 nmap
+node
 npth
 nspr
 nss
+ollama
 oniguruma
 open-mpi
 openblas
@@ -148,7 +161,6 @@ openexr
 openjdk
 openjpeg
 openldap
-openssl@1.1
 openssl@3
 opus
 p11-kit
@@ -156,6 +168,7 @@ pandoc
 pango
 pcre
 pcre2
+phoneinfoga
 php
 pinentry
 pipx
@@ -169,6 +182,7 @@ pycparser
 python-packaging
 python-tk@3.12
 python@3.10
+python@3.11
 python@3.12
 python@3.13
 r
@@ -178,6 +192,8 @@ resy
 ripgrep
 rtmpdump
 rubberband
+rust
+rwx-research/tap/abq
 sane-backends
 sdl2
 shared-mime-info
@@ -203,6 +219,7 @@ unibilium
 unixodbc
 utf8proc
 uv
+vips
 webp
 wget
 x264
@@ -210,7 +227,7 @@ x265
 xorgproto
 xvid
 xz
-youtube-dl
+yt-dlp
 zeromq
 zimg
 zsh
