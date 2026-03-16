@@ -11,6 +11,7 @@ codex
 contexts
 dash
 discord
+dockdoor
 docker
 docker-desktop
 dupeguru
