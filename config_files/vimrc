@@ -10,6 +10,9 @@ set nowrap
 set smartcase
 set noswapfile
 set nobackup
+if !isdirectory(expand('~/.vim/undos'))
+  call mkdir(expand('~/.vim/undos'), 'p')
+endif
 set undodir=~/.vim/undos
 set undofile
 set incsearch

@@ -1292,8 +1292,6 @@
 			<true/>
 			<key>Window Type</key>
 			<integer>0</integer>
-			<key>Working Directory</key>
-			<string>/Users/USER</string>
 		</dict>
 		<dict>
 			<key>ASCII Anti Aliased</key>
@@ -1648,8 +1646,6 @@
 			<true/>
 			<key>Window Type</key>
 			<integer>2</integer>
-			<key>Working Directory</key>
-			<string>/Users/USER</string>
 		</dict>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
