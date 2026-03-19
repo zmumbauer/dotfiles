@@ -121,6 +121,10 @@ fi
 # FUNCTIONS
 # ==============================================================================
 
+if [ -f "${DOTFILES_PATH}/config_files/run.zsh" ]; then
+  source "${DOTFILES_PATH}/config_files/run.zsh"
+fi
+
 # Function to update dotfiles and submodules
 function update_dotfiles() {
   echo "Updating dotfiles repository..."
