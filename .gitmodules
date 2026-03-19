@@ -8,4 +8,5 @@
 	branch = master
 [submodule "config_files/ohmyzsh"]
 	path = config_files/ohmyzsh
-	url = https://github.com/zmumbauer/ohmyzsh.git
+	url = https://github.com/ohmyzsh/ohmyzsh.git
+	branch = master

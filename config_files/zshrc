@@ -6,6 +6,7 @@ export DOTFILES_PATH="$(dirname $(dirname $(readlink -f ${(%):-%N})))"
 
 # Path to your oh-my-zsh installation.
 export ZSH="${DOTFILES_PATH}/config_files/ohmyzsh"
+export ZSH_CUSTOM="${DOTFILES_PATH}/config_files/ohmyzsh-custom"
 
 # Path modifications
 export PATH="$HOME/bin:/usr/local/bin:$PATH"
@@ -128,7 +129,7 @@ if [ -f "${DOTFILES_PATH}/config_files/run.zsh" ]; then
   source "${DOTFILES_PATH}/config_files/run.zsh"
 fi
 
-# Function to update dotfiles and submodules
+# Fast-forward dotfiles and float submodules to their configured upstream branches.
 function update_dotfiles() {
   echo "Updating dotfiles repository..."
   git -C "${DOTFILES_PATH}" pull --ff-only origin main || return 1
@@ -141,6 +142,10 @@ function update_dotfiles() {
   git -C "${DOTFILES_PATH}" submodule update --remote --recursive || return 1
 
   echo "Dotfiles and submodules updated!"
+
+  if ! git -C "${DOTFILES_PATH}" diff --quiet --submodule=short --exit-code; then
+    echo "Submodule revisions changed locally. Review with: git -C \"${DOTFILES_PATH}\" status"
+  fi
 }
 
 # SYNOPSIS
