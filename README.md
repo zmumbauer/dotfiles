@@ -14,6 +14,10 @@ Run the installer from the repo root with:
 have another executable with that name earlier on `PATH`.
 
 `./install.sh` delegates to the repo's top-level `setup` script and is safe to re-run.
+Package installation is managed from `Brewfile` via `brew bundle`, including
+Homebrew formulae, casks, Mac App Store apps, and `uv`/`go`/`cargo` tools.
+If you want Mac App Store apps installed automatically, sign into the App Store
+before running the installer or rerun it afterward.
 
 If you want to force the GitHub setup flow even when the machine already appears
 configured, run:

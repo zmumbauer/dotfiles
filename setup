@@ -61,61 +61,80 @@ install_homebrew() {
   return 1
 }
 
-brew_item_installed() {
-  local kind="$1"
-  local item="$2"
-
-  case "$kind" in
-    formula)
-      brew list --formula --versions "$item" >/dev/null 2>&1
-      ;;
-    cask)
-      brew list --cask --versions "$item" >/dev/null 2>&1
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+brewfile_path() {
+  printf '%s' "$REPO_ROOT/Brewfile"
 }
 
-install_brew_items() {
-  local kind="$1"
-  local list_file="$2"
-  local item=""
-  local -a install_args
+brewfile_has_mas_apps() {
+  grep -Eq '^mas "' "$(brewfile_path)"
+}
 
-  case "$kind" in
-    formula)
-      install_args=(install)
-      ;;
-    cask)
-      install_args=(install --cask)
-      ;;
-    *)
-      warn "Unknown Homebrew item kind: $kind"
-      return 0
-      ;;
-  esac
+mac_app_store_signed_in() {
+  command_exists mas && mas account >/dev/null 2>&1
+}
 
-  while IFS= read -r item || [[ -n "$item" ]]; do
-    [[ -z "$item" ]] && continue
-    [[ "$item" == \#* ]] && continue
+bundled_mas_apps() {
+  sed -nE 's/^mas "([^"]+)", id: ([0-9]+).*$/\1\t\2/p' "$(brewfile_path)"
+}
 
-    if brew_item_installed "$kind" "$item"; then
-      log "Homebrew $kind '$item' already installed. Skipping."
+install_mac_app_store_apps() {
+  local installed_ids=""
+  local app_name=""
+  local app_id=""
+
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return 0
+  fi
+
+  if ! brewfile_has_mas_apps; then
+    return 0
+  fi
+
+  if ! command_exists mas; then
+    warn "'mas' is unavailable, so Mac App Store apps were skipped."
+    return 0
+  fi
+
+  if ! mac_app_store_signed_in; then
+    warn "Not signed into the Mac App Store, so Mac App Store apps were skipped."
+    return 0
+  fi
+
+  installed_ids="$(mas list 2>/dev/null | awk '{print $1}')"
+
+  while IFS=$'\t' read -r app_name app_id; do
+    [[ -z "$app_id" ]] && continue
+
+    if printf '%s\n' "$installed_ids" | grep -Fxq "$app_id"; then
+      log "Mac App Store app '$app_name' already installed. Skipping."
       continue
     fi
 
-    log "Installing Homebrew $kind '$item'..."
-    if ! brew "${install_args[@]}" "$item"; then
-      warn "Failed to install Homebrew $kind '$item'."
+    log "Installing Mac App Store app '$app_name'..."
+    if mas install "$app_id"; then
+      installed_ids="${installed_ids}"$'\n'"$app_id"
+    else
+      warn "Failed to install Mac App Store app '$app_name' ($app_id)."
     fi
-  done < "$list_file"
+  done < <(bundled_mas_apps)
 }
 
 install_homebrew_packages() {
-  install_brew_items formula "$REPO_ROOT/brew_formulae.txt"
-  install_brew_items cask "$REPO_ROOT/brew_casks.txt"
+  local brewfile=""
+
+  brewfile="$(brewfile_path)"
+  if [[ ! -f "$brewfile" ]]; then
+    warn "Brewfile not found at $brewfile."
+    return 0
+  fi
+
+  log "Installing Homebrew bundle from $brewfile..."
+  if ! HOMEBREW_BUNDLE_MAS_SKIP=1 brew bundle install --file "$brewfile" --no-upgrade; then
+    warn "Homebrew bundle install failed. Review the Homebrew output above."
+    return 0
+  fi
+
+  install_mac_app_store_apps
 }
 
 prompt_for_value() {
