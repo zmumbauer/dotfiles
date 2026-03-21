@@ -538,8 +538,8 @@ install_xcode_cli() {
 
 print_summary() {
   printf '\n%s\n' "================================================================================"
-  printf '%s\n' "IMPORTANT: Please review the post_install.txt file for manual steps:"
-  printf '%s\n' "           $REPO_ROOT/post_install.txt"
+  printf '%s\n' "IMPORTANT: Please review README.md for any remaining manual steps:"
+  printf '%s\n' "           $REPO_ROOT/README.md"
   printf '%s\n' "================================================================================"
 
   if [[ "${#WARNINGS[@]}" -eq 0 ]]; then
