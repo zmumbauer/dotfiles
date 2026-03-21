@@ -340,6 +340,7 @@ cask "zmumbauer-librescore"
 mas "1Password for Safari", id: 1569813296
 mas "Amphetamine", id: 937984704
 mas "Brother iPrint&Scan", id: 1193539993
+mas "Canary Mail App", id: 1236045954
 mas "Capital One Shopping", id: 1477110326
 mas "Capo", id: 696977615
 mas "CCCCorners", id: 6754601983
@@ -381,7 +382,6 @@ mas "ToothFairy", id: 1191449274
 mas "Twingate", id: 1501592214
 mas "Vythm", id: 1550581532
 mas "Windows App", id: 1295203466
-
 # Go tools
 # go "golang.org/x/tools/gopls"
 

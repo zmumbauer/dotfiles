@@ -18,7 +18,14 @@ alias rgs="rg --color=always --line-number --smart-case --hidden --glob '!{.git,
 alias kill-panel="tmux kill-pane -t"
 
 alias cf="pbcopy <"
-alias co="fc -ln -1 | pbcopy"
+
+co() {
+  if [[ -t 0 ]]; then
+    fc -ln -1 | awk '{$1=$1}1' | pbcopy
+  else
+    tee >(pbcopy)
+  fi
+}
 
 export BAT_THEME="Coldark-Cold"
 

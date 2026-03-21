@@ -120,3 +120,19 @@ Useful checks:
 
 - `brew bundle check --file Brewfile --no-upgrade` verifies that everything declared in `Brewfile` is installed.
 - `brew livecheck --cask zmumbauer-cactusvpn zmumbauer-librescore` checks the custom casks in this repo for newer upstream versions.
+
+## Adding Mac App Store Apps
+
+Use the MAS picker to search by name, pick from an interactive list, insert the selected app into the `Brewfile`, and then try to install it immediately with `mas`:
+
+```zsh
+add_mas_app
+```
+
+You can also pass the initial search text on the command line:
+
+```zsh
+add_mas_app SiteSucker
+```
+
+The underlying script lives at `./scripts/add_mas_app.sh`. It uses `mas search` for results, `gum filter` for the TUI picker, keeps the `mas` entries in `Brewfile` sorted by app name, and runs `mas install` for newly added apps when the App Store is signed in.
