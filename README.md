@@ -74,3 +74,49 @@ git pull --ff-only origin main
 git submodule sync --recursive
 git submodule update --init --recursive
 ```
+
+## Keeping Apps Up To Date
+
+`update_dotfiles` updates the repo and submodules. It does not install or upgrade Homebrew or Mac App Store packages by itself.
+
+Recommended workflow from the repo root:
+
+1. Pull the latest dotfiles, including any `Brewfile` or custom cask changes:
+
+```zsh
+update_dotfiles
+```
+
+2. See what Homebrew or App Store packages are behind:
+
+```zsh
+brew update
+brew outdated
+brew outdated --cask
+mas outdated
+```
+
+3. Install anything newly added to `Brewfile` without upgrading existing packages:
+
+```zsh
+./install.sh
+```
+
+`./install.sh` uses `brew bundle install --file Brewfile --no-upgrade`, so it is the safe "sync me to the current Brewfile" command.
+
+4. Upgrade Brewfile-managed formulae and casks to the latest available versions:
+
+```zsh
+brew bundle install --file Brewfile --upgrade
+```
+
+5. If you also want Brewfile-managed Mac App Store apps updated, make sure you are signed into the App Store, then run:
+
+```zsh
+mas upgrade
+```
+
+Useful checks:
+
+- `brew bundle check --file Brewfile --no-upgrade` verifies that everything declared in `Brewfile` is installed.
+- `brew livecheck --cask zmumbauer-cactusvpn zmumbauer-librescore` checks the custom casks in this repo for newer upstream versions.

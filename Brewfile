@@ -334,6 +334,7 @@ cask "wacom-tablet"
 cask "wireshark-app"
 cask "zen"
 cask "zmumbauer-cactusvpn"
+cask "zmumbauer-librescore"
 
 # Mac App Store apps. Sign into the App Store before running the installer.
 mas "1Password for Safari", id: 1569813296
