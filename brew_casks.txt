@@ -2,9 +2,7 @@
 1password-cli
 adobe-acrobat-reader
 alfred
-authy
 bartender
-cheatsheet
 chromedriver
 chromium
 codex
@@ -17,14 +15,14 @@ docker-desktop
 dupeguru
 fig
 firefox
-fleet
-font-roboto-mono-nerd-font
 gimp
 google-chrome
 gpg-suite
 graphiql
+jordanbaird-ice
 iina
 iterm2
+keyclu
 little-snitch
 micro-snitch
 miro

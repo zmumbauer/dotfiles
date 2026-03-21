@@ -2,6 +2,26 @@
 
 This repo manages shell, tmux, editor, and related local configuration.
 
+## Bootstrap
+
+Run the installer from the repo root with:
+
+```zsh
+./install.sh
+```
+
+`setup` by itself is not a reliable command name because many systems already
+have another executable with that name earlier on `PATH`.
+
+`./install.sh` delegates to the repo's top-level `setup` script and is safe to re-run.
+
+If you want to force the GitHub setup flow even when the machine already appears
+configured, run:
+
+```zsh
+FORCE_GITHUB_SETUP=1 ./install.sh
+```
+
 ## Keeping It Up To Date
 
 Use `update_dotfiles` from an interactive Zsh session to update the repo and all configured submodules:

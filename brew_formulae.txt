@@ -163,6 +163,7 @@ openjpeg
 openldap
 openssl@3
 opus
+orbstack
 p11-kit
 pandoc
 pango

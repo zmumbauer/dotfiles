@@ -1,110 +1,549 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# This script will setup a new mac with my preferred settings and apps
+set -euo pipefail
+
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+SSH_KEY_PATH="$HOME/.ssh/github_id_ed25519"
+SSH_CONFIG_PATH="$HOME/.ssh/config"
+SSH_CONFIG_BEGIN="# >>> dotfiles github ssh >>>"
+SSH_CONFIG_END="# <<< dotfiles github ssh <<<"
+DEFAULT_SSH_KEYS=(id_ed25519 id_ecdsa id_rsa)
+
+WARNINGS=()
+GITHUB_KEY_CREATED=0
+
+log() {
+  printf '%s\n' "$*"
+}
+
+warn() {
+  local message="$1"
+  WARNINGS+=("$message")
+  printf 'WARNING: %s\n' "$message" >&2
+}
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+ensure_homebrew_env() {
+  local brew_bin
+
+  if command_exists brew; then
+    return 0
+  fi
+
+  for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [[ -x "$brew_bin" ]]; then
+      eval "$("$brew_bin" shellenv)"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 install_homebrew() {
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  if ensure_homebrew_env; then
+    log "Homebrew already installed. Skipping."
+    return 0
+  fi
+
+  log "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  if ensure_homebrew_env; then
+    log "Homebrew installation complete."
+    return 0
+  fi
+
+  warn "Homebrew installation finished, but 'brew' is still unavailable in this shell."
+  return 1
+}
+
+brew_item_installed() {
+  local kind="$1"
+  local item="$2"
+
+  case "$kind" in
+    formula)
+      brew list --formula --versions "$item" >/dev/null 2>&1
+      ;;
+    cask)
+      brew list --cask --versions "$item" >/dev/null 2>&1
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+install_brew_items() {
+  local kind="$1"
+  local list_file="$2"
+  local item=""
+  local -a install_args
+
+  case "$kind" in
+    formula)
+      install_args=(install)
+      ;;
+    cask)
+      install_args=(install --cask)
+      ;;
+    *)
+      warn "Unknown Homebrew item kind: $kind"
+      return 0
+      ;;
+  esac
+
+  while IFS= read -r item || [[ -n "$item" ]]; do
+    [[ -z "$item" ]] && continue
+    [[ "$item" == \#* ]] && continue
+
+    if brew_item_installed "$kind" "$item"; then
+      log "Homebrew $kind '$item' already installed. Skipping."
+      continue
+    fi
+
+    log "Installing Homebrew $kind '$item'..."
+    if ! brew "${install_args[@]}" "$item"; then
+      warn "Failed to install Homebrew $kind '$item'."
+    fi
+  done < "$list_file"
 }
 
 install_homebrew_packages() {
-    brew install $(<${PWD}/brew_formulae.txt)
-    brew install --cask $(<${PWD}/brew_casks.txt)
+  install_brew_items formula "$REPO_ROOT/brew_formulae.txt"
+  install_brew_items cask "$REPO_ROOT/brew_casks.txt"
 }
 
-configure_github_interactively() {
-    echo "================================================================================"
-    echo "                           GitHub Setup Instructions                            "
-    echo "================================================================================"
-    echo "This script will guide you through setting up your GitHub SSH key and Git config."
-    echo "Please provide the requested information."
-    echo ""
+prompt_for_value() {
+  local prompt="$1"
+  local default_value="$2"
+  local response=""
 
-    read -p "Enter your GitHub email address (e.g., your_email@example.com): " github_email
-    read -p "Enter your GitHub username (e.g., octocat): " github_username
+  if [[ -n "$default_value" ]]; then
+    read -r -p "$prompt [$default_value]: " response
+    if [[ -z "$response" ]]; then
+      response="$default_value"
+    fi
+  else
+    read -r -p "$prompt: " response
+  fi
 
-    echo ""
-    echo "1. Generating SSH key..."
-    ssh-keygen -t ed25519 -C "$github_email" -f ~/.ssh/github_id_ed25519 -N ""
-    echo "SSH key generated at ~/.ssh/github_id_ed25519"
-    echo ""
-
-    echo "2. Adding SSH key to ssh-agent..."
-    ssh-add ~/.ssh/github_id_ed25519
-    echo "SSH key added to agent."
-    echo ""
-
-    echo "3. Configuring global Git user name and email..."
-    git config --global user.name "$github_username"
-    git config --global user.email "$github_email"
-    echo "Git global config set."
-    echo ""
-
-    echo "4. Appending GitHub SSH config to ~/.ssh/config..."
-    echo "" >> ~/.ssh/config
-    echo "Host github.com" >> ~/.ssh/config
-    echo "  HostName github.com" >> ~/.ssh/config
-    echo "  User git" >> ~/.ssh/config
-    echo "  IdentityFile ~/.ssh/github_id_ed25519" >> ~/.ssh/config
-    echo "  IdentitiesOnly yes" >> ~/.ssh/config
-    echo "GitHub SSH config appended to ~/.ssh/config."
-    echo ""
-
-    echo "================================================================================"
-    echo "IMPORTANT: Please add your new SSH public key to your GitHub account."
-    echo "You can copy it using: pbcopy < ~/.ssh/github_id_ed25519.pub"
-    echo "Then, go to GitHub -> Settings -> SSH and GPG keys -> New SSH key and paste it."
-    echo "================================================================================"
-    echo ""
+  printf '%s' "$response"
 }
 
+flag_enabled() {
+  case "${1:-}" in
+    1|true|TRUE|yes|YES|on|ON)
+      return 0
+      ;;
+  esac
+
+  return 1
+}
+
+git_global_value() {
+  git config --global --get "$1" 2>/dev/null || true
+}
+
+git_identity_configured() {
+  [[ -n "$(git_global_value user.name)" && -n "$(git_global_value user.email)" ]]
+}
+
+github_host_entry_present() {
+  [[ -f "$SSH_CONFIG_PATH" ]] || return 1
+  grep -Eq '^[[:space:]]*Host[[:space:]]+github\.com([[:space:]]|$)' "$SSH_CONFIG_PATH"
+}
+
+github_managed_config_present() {
+  [[ -f "$SSH_CONFIG_PATH" ]] || return 1
+  grep -Fq "$SSH_CONFIG_BEGIN" "$SSH_CONFIG_PATH" || \
+    grep -Fq "IdentityFile ~/.ssh/github_id_ed25519" "$SSH_CONFIG_PATH"
+}
+
+default_ssh_key_present() {
+  local key_name=""
+
+  for key_name in "${DEFAULT_SSH_KEYS[@]}"; do
+    if [[ -f "$HOME/.ssh/$key_name" || -f "$HOME/.ssh/$key_name.pub" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+github_ssh_setup_present() {
+  if [[ -f "$SSH_KEY_PATH" ]] && github_managed_config_present; then
+    return 0
+  fi
+
+  if github_host_entry_present; then
+    return 0
+  fi
+
+  if default_ssh_key_present; then
+    return 0
+  fi
+
+  return 1
+}
+
+github_setup_needed() {
+  if flag_enabled "${FORCE_GITHUB_SETUP:-}"; then
+    return 0
+  fi
+
+  [[ -n "${GITHUB_USERNAME:-}" ]] && return 0
+  [[ -n "${GITHUB_EMAIL:-}" ]] && return 0
+
+  if ! git_identity_configured; then
+    return 0
+  fi
+
+  if ! github_ssh_setup_present; then
+    return 0
+  fi
+
+  return 1
+}
+
+configure_git_identity() {
+  local existing_email=""
+  local existing_username=""
+  local github_email=""
+  local github_username=""
+  local should_prompt=0
+
+  existing_email="$(git_global_value user.email)"
+  existing_username="$(git_global_value user.name)"
+
+  github_email="${GITHUB_EMAIL:-$existing_email}"
+  github_username="${GITHUB_USERNAME:-$existing_username}"
+
+  if [[ -z "$github_email" || -z "$github_username" ]]; then
+    should_prompt=1
+  fi
+
+  if [[ $should_prompt -eq 1 && -t 0 && -t 1 ]]; then
+    printf '%s\n' "================================================================================"
+    printf '%s\n' "                           GitHub Setup Instructions                            "
+    printf '%s\n' "================================================================================"
+    printf '%s\n' "This script will guide you through setting up your GitHub SSH key and Git config."
+    printf '%s\n' "Only missing values will be requested."
+    printf '\n'
+
+    if [[ -z "$github_email" ]]; then
+      github_email="$(prompt_for_value "Enter your GitHub email address" "$github_email")"
+    fi
+
+    if [[ -z "$github_username" ]]; then
+      github_username="$(prompt_for_value "Enter your GitHub username" "$github_username")"
+    fi
+
+    printf '\n'
+  fi
+
+  if [[ -n "$github_username" ]]; then
+    if [[ "$existing_username" == "$github_username" ]]; then
+      log "Git global user.name already set to '$github_username'. Skipping."
+    else
+      git config --global user.name "$github_username"
+      log "Git global user.name set to '$github_username'."
+    fi
+  else
+    warn "GitHub username is unset. Skipping git user.name configuration."
+  fi
+
+  if [[ -n "$github_email" ]]; then
+    if [[ "$existing_email" == "$github_email" ]]; then
+      log "Git global user.email already set to '$github_email'. Skipping."
+    else
+      git config --global user.email "$github_email"
+      log "Git global user.email set to '$github_email'."
+    fi
+  else
+    warn "GitHub email is unset. Skipping git user.email configuration and SSH key generation."
+  fi
+
+  GITHUB_EMAIL="${github_email}"
+}
+
+ensure_github_ssh_key() {
+  local github_email="${GITHUB_EMAIL:-}"
+
+  GITHUB_KEY_CREATED=0
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+
+  if [[ -f "$SSH_KEY_PATH" ]]; then
+    log "GitHub SSH key already exists at $SSH_KEY_PATH. Skipping generation."
+    return 0
+  fi
+
+  if [[ -z "$github_email" ]]; then
+    warn "GitHub email is unavailable, so the GitHub SSH key was not generated."
+    return 0
+  fi
+
+  log "Generating GitHub SSH key..."
+  ssh-keygen -t ed25519 -C "$github_email" -f "$SSH_KEY_PATH" -N ""
+  GITHUB_KEY_CREATED=1
+}
+
+ensure_github_ssh_config() {
+  mkdir -p "$HOME/.ssh"
+  touch "$SSH_CONFIG_PATH"
+  chmod 600 "$SSH_CONFIG_PATH"
+
+  if [[ ! -f "$SSH_KEY_PATH" ]]; then
+    warn "GitHub SSH key is missing, so ~/.ssh/config was left unchanged."
+    return 0
+  fi
+
+  if grep -Fq "$SSH_CONFIG_BEGIN" "$SSH_CONFIG_PATH"; then
+    log "Managed GitHub SSH config block already present. Skipping."
+    return 0
+  fi
+
+  if grep -Fq "IdentityFile ~/.ssh/github_id_ed25519" "$SSH_CONFIG_PATH"; then
+    log "GitHub SSH config already references ~/.ssh/github_id_ed25519. Skipping managed block."
+    return 0
+  fi
+
+  log "Adding managed GitHub SSH config block to $SSH_CONFIG_PATH..."
+  printf '\n%s\n' "$SSH_CONFIG_BEGIN" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "Host github.com" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "  HostName github.com" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "  User git" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "  IdentityFile ~/.ssh/github_id_ed25519" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "  IdentitiesOnly yes" >> "$SSH_CONFIG_PATH"
+  printf '%s\n' "$SSH_CONFIG_END" >> "$SSH_CONFIG_PATH"
+}
+
+add_github_key_to_agent() {
+  if [[ ! -f "$SSH_KEY_PATH" ]]; then
+    return 0
+  fi
+
+  if ssh-add "$SSH_KEY_PATH" >/dev/null 2>&1; then
+    log "GitHub SSH key added to ssh-agent."
+    return 0
+  fi
+
+  warn "Could not add $SSH_KEY_PATH to ssh-agent automatically."
+}
+
+configure_github() {
+  if ! github_setup_needed; then
+    log "GitHub identity and SSH access already appear configured. Skipping."
+    return 0
+  fi
+
+  if ! git_identity_configured || [[ -n "${GITHUB_USERNAME:-}" || -n "${GITHUB_EMAIL:-}" ]]; then
+    configure_git_identity
+  else
+    GITHUB_EMAIL="$(git_global_value user.email)"
+    log "Git global identity already configured. Skipping."
+  fi
+
+  if github_ssh_setup_present && ! flag_enabled "${FORCE_GITHUB_SETUP:-}"; then
+    log "GitHub SSH access already appears configured. Skipping."
+    return 0
+  fi
+
+  ensure_github_ssh_key
+  ensure_github_ssh_config
+  add_github_key_to_agent
+
+  if [[ "$GITHUB_KEY_CREATED" -eq 1 && -f "${SSH_KEY_PATH}.pub" ]]; then
+    printf '%s\n' "================================================================================"
+    printf '%s\n' "IMPORTANT: Add your SSH public key to GitHub:"
+    printf '%s\n' "          pbcopy < ${SSH_KEY_PATH}.pub"
+    printf '%s\n' "================================================================================"
+  fi
+}
+
+ensure_symlink() {
+  local source_path="$1"
+  local target_path="$2"
+  local current_target=""
+
+  mkdir -p "$(dirname "$target_path")"
+
+  if [[ -L "$target_path" ]]; then
+    current_target="$(readlink "$target_path")"
+    if [[ "$current_target" == "$source_path" ]]; then
+      log "Symlink already correct: $target_path"
+      return 0
+    fi
+
+    rm "$target_path"
+    ln -s "$source_path" "$target_path"
+    log "Updated symlink: $target_path -> $source_path"
+    return 0
+  fi
+
+  if [[ -e "$target_path" ]]; then
+    warn "Skipping $target_path because it exists and is not a symlink."
+    return 0
+  fi
+
+  ln -s "$source_path" "$target_path"
+  log "Created symlink: $target_path -> $source_path"
+}
 
 sym_link_configs() {
-    ln -s ${PWD}/config_files/zshrc ~/.zshrc
-    ln -s ${PWD}/config_files/p10k.zsh ~/.p10k.zsh
-    ln -s ${PWD}/config_files/vimrc ~/.vimrc
-    ln -s ${PWD}/config_files/gitconfig ~/.gitconfig
-    ln -s ${PWD}/config_files/ohmytmux/.tmux.conf ~/.tmux.conf
-    ln -s ${PWD}/config_files/tmux.conf.local ~/.tmux.conf.local
-    ln -s ${PWD}/config_files/aliases.zsh ~/.aliases.zsh
-    ln -s ${PWD}/config_files/zshrc_env ~/.zshrc_env
-    ln -s ${PWD}/vim ~/.vim
-    # todo: clone the nvim repo
-    ln -s ${PWD}/nvim ~/.config/nvim
-    mkdir -p ~/Library/Application\ Support/eza
-    ln -s ${PWD}/config_files/eza/themes/tokyonight.yml ~/Library/Application\ Support/eza/theme.yml
-    ln -s ${PWD}/config_files/nvm.zsh ~/.nvm.zsh
+  ensure_symlink "$REPO_ROOT/config_files/zshrc" "$HOME/.zshrc"
+  ensure_symlink "$REPO_ROOT/config_files/p10k.zsh" "$HOME/.p10k.zsh"
+  ensure_symlink "$REPO_ROOT/config_files/vimrc" "$HOME/.vimrc"
+  ensure_symlink "$REPO_ROOT/config_files/gitconfig" "$HOME/.gitconfig"
+  ensure_symlink "$REPO_ROOT/config_files/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
+  ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
+  ensure_symlink "$REPO_ROOT/config_files/aliases.zsh" "$HOME/.aliases.zsh"
+  ensure_symlink "$REPO_ROOT/config_files/zshrc_env" "$HOME/.zshrc_env"
+  ensure_symlink "$REPO_ROOT/vim" "$HOME/.vim"
+  ensure_symlink "$REPO_ROOT/nvim" "$HOME/.config/nvim"
+  ensure_symlink "$REPO_ROOT/config_files/eza/themes/tokyonight.yml" "$HOME/Library/Application Support/eza/theme.yml"
+  ensure_symlink "$REPO_ROOT/config_files/nvm.zsh" "$HOME/.nvm.zsh"
+}
+
+asdf_plugin_installed() {
+  local plugin_name="$1"
+  asdf plugin list 2>/dev/null | grep -Fxq "$plugin_name"
+}
+
+asdf_has_installed_versions() {
+  local plugin_name="$1"
+  local installed_versions=""
+
+  installed_versions="$(asdf list "$plugin_name" 2>/dev/null || true)"
+  [[ -n "${installed_versions//[[:space:]]/}" ]]
+}
+
+ensure_asdf_plugin() {
+  local plugin_name="$1"
+  local plugin_url="$2"
+
+  if asdf_plugin_installed "$plugin_name"; then
+    log "asdf plugin '$plugin_name' already added. Skipping."
+    return 0
+  fi
+
+  log "Adding asdf plugin '$plugin_name'..."
+  asdf plugin add "$plugin_name" "$plugin_url"
+}
+
+ensure_asdf_version() {
+  local plugin_name="$1"
+  local latest_version=""
+
+  if asdf_has_installed_versions "$plugin_name"; then
+    log "asdf '$plugin_name' already has installed versions. Skipping."
+    return 0
+  fi
+
+  latest_version="$(asdf latest "$plugin_name" 2>/dev/null || true)"
+  if [[ -z "$latest_version" ]]; then
+    warn "Could not determine the latest version for asdf plugin '$plugin_name'."
+    return 0
+  fi
+
+  log "Installing asdf '$plugin_name' version '$latest_version'..."
+  asdf install "$plugin_name" "$latest_version"
 }
 
 install_asdf_libraries() {
-    asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
-    asdf install ruby latest
+  if ! command_exists asdf; then
+    warn "asdf is not available on PATH. Skipping asdf plugin installation."
+    return 0
+  fi
 
-    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-    asdf install nodejs latest
+  ensure_asdf_plugin ruby https://github.com/asdf-vm/asdf-ruby.git
+  ensure_asdf_version ruby
+
+  ensure_asdf_plugin nodejs https://github.com/asdf-vm/asdf-nodejs.git
+  ensure_asdf_version nodejs
 }
 
-install_xcode_cli() {
-    xcode-select --install
+ensure_git_clone() {
+  local repository_url="$1"
+  local destination_path="$2"
+  shift 2
+
+  mkdir -p "$(dirname "$destination_path")"
+
+  if [[ -d "$destination_path/.git" || -f "$destination_path/.git" ]]; then
+    log "Git checkout already exists at $destination_path. Skipping clone."
+    return 0
+  fi
+
+  if [[ -e "$destination_path" ]]; then
+    warn "Skipping clone into $destination_path because the path exists and is not a git checkout."
+    return 0
+  fi
+
+  log "Cloning $repository_url into $destination_path..."
+  git clone "$@" "$repository_url" "$destination_path"
 }
 
-install_nvim_package_manager() {
-	git clone --depth 1 https://github.com/wbthomason/packer.nvim\
-	~/.local/share/nvim/site/pack/packer/start/packer.nvim
+install_nvim_plugin_manager() {
+  ensure_git_clone \
+    https://github.com/folke/lazy.nvim.git \
+    "$HOME/.local/share/nvim/lazy/lazy.nvim" \
+    --filter=blob:none \
+    --branch=stable
 }
 
 install_tmux_plugin_manager() {
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  ensure_git_clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 }
 
-install_homebrew
-install_homebrew_packages
-setup_github
-sym_link_configs
-install_asdf_libraries
-install_nvim_package_manager
-install_tmux_plugin_manager
-install_xcode_cli # This should be last since it requires user input in the pop-up window 
-echo "
-================================================================================"
-echo "IMPORTANT: Please review the post_install.txt file for manual steps:"
-echo "           ${PWD}/post_install.txt"
-echo "================================================================================"
+install_xcode_cli() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    log "Not running on macOS. Skipping Xcode Command Line Tools installation."
+    return 0
+  fi
+
+  if xcode-select -p >/dev/null 2>&1; then
+    log "Xcode Command Line Tools already installed. Skipping."
+    return 0
+  fi
+
+  log "Installing Xcode Command Line Tools..."
+  xcode-select --install
+}
+
+print_summary() {
+  printf '\n%s\n' "================================================================================"
+  printf '%s\n' "IMPORTANT: Please review the post_install.txt file for manual steps:"
+  printf '%s\n' "           $REPO_ROOT/post_install.txt"
+  printf '%s\n' "================================================================================"
+
+  if [[ "${#WARNINGS[@]}" -eq 0 ]]; then
+    return 0
+  fi
+
+  printf '\n%s\n' "Completed with warnings:"
+  local warning=""
+  for warning in "${WARNINGS[@]}"; do
+    printf '  - %s\n' "$warning"
+  done
+}
+
+main() {
+  install_homebrew
+  install_homebrew_packages
+  configure_github
+  sym_link_configs
+  install_asdf_libraries
+  install_nvim_plugin_manager
+  install_tmux_plugin_manager
+  install_xcode_cli
+  print_summary
+}
+
+main "$@"
