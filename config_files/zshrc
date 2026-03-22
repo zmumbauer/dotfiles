@@ -63,18 +63,14 @@ plugins=(
   docker
   docker-compose
   dotenv
-  eza
   extract
   gh
   git
   git-commit
   git-extras
   history
-  hitchhiker
-  iterm2
   kubectl
   last-working-dir
-  macos
   nmap
   qrcode
   rails
@@ -92,6 +88,18 @@ plugins=(
   zsh-autosuggestions
   zsh-syntax-highlighting
 )
+
+if command -v eza >/dev/null 2>&1; then
+  plugins+=(eza)
+fi
+
+if command -v strfile >/dev/null 2>&1; then
+  plugins+=(hitchhiker)
+fi
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  plugins+=(iterm2 macos)
+fi
 
 source "${ZSH}/oh-my-zsh.sh"
 
