@@ -549,6 +549,29 @@ add_github_key_to_agent() {
   warn "Could not add $SSH_KEY_PATH to ssh-agent automatically."
 }
 
+print_github_key_instructions() {
+  printf '%s\n' "================================================================================"
+  printf '%s\n' "IMPORTANT: Add your SSH public key to GitHub:"
+  printf '%s\n' "          Public key path: ${SSH_KEY_PATH}.pub"
+
+  if command_exists gh; then
+    printf '%s\n' "          Authenticate GitHub CLI: gh auth login"
+    printf '%s\n' "          Upload with GitHub CLI: gh ssh-key add ${SSH_KEY_PATH}.pub --title \"$(hostname)-$(date +%F)\""
+  fi
+
+  if command_exists pbcopy; then
+    printf '%s\n' "          Copy on macOS: pbcopy < ${SSH_KEY_PATH}.pub"
+  elif command_exists wl-copy; then
+    printf '%s\n' "          Copy on Wayland: wl-copy < ${SSH_KEY_PATH}.pub"
+  elif command_exists xclip; then
+    printf '%s\n' "          Copy on X11: xclip -selection clipboard < ${SSH_KEY_PATH}.pub"
+  else
+    printf '%s\n' "          Print the key: cat ${SSH_KEY_PATH}.pub"
+  fi
+
+  printf '%s\n' "================================================================================"
+}
+
 configure_github() {
   if ! github_setup_needed; then
     log "GitHub identity and SSH access already appear configured. Skipping."
@@ -572,10 +595,7 @@ configure_github() {
   add_github_key_to_agent
 
   if [[ "$GITHUB_KEY_CREATED" -eq 1 && -f "${SSH_KEY_PATH}.pub" ]]; then
-    printf '%s\n' "================================================================================"
-    printf '%s\n' "IMPORTANT: Add your SSH public key to GitHub:"
-    printf '%s\n' "          pbcopy < ${SSH_KEY_PATH}.pub"
-    printf '%s\n' "================================================================================"
+    print_github_key_instructions
   fi
 }
 
