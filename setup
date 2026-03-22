@@ -8,10 +8,18 @@ SSH_CONFIG_PATH="$HOME/.ssh/config"
 SSH_CONFIG_BEGIN="# >>> dotfiles github ssh >>>"
 SSH_CONFIG_END="# <<< dotfiles github ssh <<<"
 DEFAULT_SSH_KEYS=(id_ed25519 id_ecdsa id_rsa)
+REMOTE_DEV_BREW_FORMULAE=(
+  git
+  gh
+  tmux
+  zsh
+  jandedobbeleer/oh-my-posh/oh-my-posh
+)
 
 WARNINGS=()
 GITHUB_KEY_CREATED=0
 RUN_HOMEBREW=0
+RUN_REMOTE_DEV=0
 RUN_GITHUB=0
 RUN_SHELL=0
 RUN_GIT_CONFIG=0
@@ -41,6 +49,7 @@ When one or more section flags are provided, only those sections run.
 
 Sections:
   --homebrew  Install Homebrew and Brewfile packages
+  --remote-dev  Install a minimal remote-dev toolchain and related config
   --github    Configure git identity and GitHub SSH access
   --configs   Run all config-related sections
   --shell     Symlink the shell config files
@@ -88,6 +97,7 @@ print_selected_sections() {
   local section_list=""
 
   [[ "$RUN_HOMEBREW" -eq 1 ]] && sections+=("homebrew")
+  [[ "$RUN_REMOTE_DEV" -eq 1 ]] && sections+=("remote-dev")
   [[ "$RUN_GITHUB" -eq 1 ]] && sections+=("github")
   [[ "$RUN_SHELL" -eq 1 ]] && sections+=("shell")
   [[ "$RUN_GIT_CONFIG" -eq 1 ]] && sections+=("git")
@@ -116,6 +126,13 @@ parse_args() {
     case "$1" in
       --homebrew)
         RUN_HOMEBREW=1
+        section_flag_seen=1
+        ;;
+      --remote-dev)
+        RUN_REMOTE_DEV=1
+        RUN_GITHUB=1
+        RUN_SHELL=1
+        RUN_TMUX=1
         section_flag_seen=1
         ;;
       --github)
@@ -289,6 +306,32 @@ install_homebrew_packages() {
   fi
 
   install_mac_app_store_apps
+}
+
+install_homebrew_formulae() {
+  local formula=""
+
+  for formula in "$@"; do
+    if brew list --formula "$formula" >/dev/null 2>&1; then
+      log "Homebrew formula '$formula' already installed. Skipping."
+      continue
+    fi
+
+    log "Installing Homebrew formula '$formula'..."
+    if ! brew install "$formula"; then
+      warn "Failed to install Homebrew formula '$formula'."
+    fi
+  done
+}
+
+install_remote_dev_packages() {
+  if ! install_homebrew; then
+    warn "Homebrew is unavailable, so remote-dev packages were skipped."
+    return 0
+  fi
+
+  log "Installing remote-dev Homebrew packages..."
+  install_homebrew_formulae "${REMOTE_DEV_BREW_FORMULAE[@]}"
 }
 
 prompt_for_value() {
@@ -729,6 +772,10 @@ main() {
   if [[ "$RUN_HOMEBREW" -eq 1 ]]; then
     install_homebrew
     install_homebrew_packages
+  fi
+
+  if [[ "$RUN_REMOTE_DEV" -eq 1 ]]; then
+    install_remote_dev_packages
   fi
 
   if [[ "$RUN_GITHUB" -eq 1 ]]; then

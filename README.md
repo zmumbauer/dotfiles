@@ -25,12 +25,21 @@ You can also run only specific setup sections. For example:
 ./install.sh --github --homebrew --nvim
 ```
 
+For a lean remote-development setup, use:
+
+```zsh
+./install.sh --remote-dev
+```
+
 When no section flags are provided, `./install.sh` runs every section. Use
 `./install.sh --help` to see the full list of available section flags.
 
 Config-related sections are individually selectable with flags like `--shell`,
 `--git`, `--vim`, `--nvim`, `--tmux`, and `--eza`. `--configs` is a
 convenience alias that runs all of those config sections together.
+`--remote-dev` installs a minimal Homebrew toolchain (`git`, `gh`, `tmux`,
+`zsh`, and `oh-my-posh`) and then runs the matching `github`, `shell`, and
+`tmux` setup sections without installing the full `Brewfile`.
 
 Manual follow-up after `./install.sh`:
 
