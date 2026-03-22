@@ -608,7 +608,20 @@ ensure_symlink() {
   log "Created symlink: $target_path -> $source_path"
 }
 
+ensure_repo_submodule() {
+  local submodule_path="$1"
+
+  if [[ -d "$REPO_ROOT/$submodule_path/.git" || -f "$REPO_ROOT/$submodule_path/.git" ]]; then
+    return 0
+  fi
+
+  log "Initializing submodule: $submodule_path"
+  git -C "$REPO_ROOT" submodule sync -- "$submodule_path"
+  git -C "$REPO_ROOT" submodule update --init -- "$submodule_path"
+}
+
 symlink_shell_configs() {
+  ensure_repo_submodule "config_files/ohmyzsh"
   ensure_symlink "$REPO_ROOT/config_files/zshrc" "$HOME/.zshrc"
   ensure_symlink "$REPO_ROOT/config_files/p10k.zsh" "$HOME/.p10k.zsh"
   ensure_symlink "$REPO_ROOT/config_files/aliases.zsh" "$HOME/.aliases.zsh"
@@ -626,10 +639,12 @@ symlink_vim_config() {
 }
 
 symlink_nvim_config() {
+  ensure_repo_submodule "nvim"
   ensure_symlink "$REPO_ROOT/nvim" "$HOME/.config/nvim"
 }
 
 symlink_tmux_config() {
+  ensure_repo_submodule "config_files/ohmytmux"
   ensure_symlink "$REPO_ROOT/config_files/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
   ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
 }
