@@ -335,6 +335,7 @@ cask "wacom-tablet"
 cask "wireshark-app"
 cask "zen"
 cask "zmumbauer-cactusvpn"
+cask "zmumbauer-fluidvoice"
 cask "zmumbauer-librescore"
 
 # Mac App Store apps. Sign into the App Store before running the installer.
