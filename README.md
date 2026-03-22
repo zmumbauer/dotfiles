@@ -19,6 +19,19 @@ Homebrew formulae, casks, Mac App Store apps, and `uv`/`go`/`cargo` tools.
 If you want Mac App Store apps installed automatically, sign into the App Store
 before running the installer or rerun it afterward.
 
+You can also run only specific setup sections. For example:
+
+```zsh
+./install.sh --github --homebrew --nvim
+```
+
+When no section flags are provided, `./install.sh` runs every section. Use
+`./install.sh --help` to see the full list of available section flags.
+
+Config-related sections are individually selectable with flags like `--shell`,
+`--git`, `--vim`, `--nvim`, `--tmux`, and `--eza`. `--configs` is a
+convenience alias that runs all of those config sections together.
+
 Manual follow-up after `./install.sh`:
 
 - In the Mac App Store, sign in before running `./install.sh` if you want the Brewfile-managed App Store apps installed automatically.
@@ -99,10 +112,10 @@ mas outdated
 3. Install anything newly added to `Brewfile` without upgrading existing packages:
 
 ```zsh
-./install.sh
+./install.sh --homebrew
 ```
 
-`./install.sh` uses `brew bundle install --file Brewfile --no-upgrade`, so it is the safe "sync me to the current Brewfile" command.
+`./install.sh --homebrew` uses `brew bundle install --file Brewfile --no-upgrade`, so it is the safe "sync me to the current Brewfile" command.
 
 4. Upgrade Brewfile-managed formulae and casks to the latest available versions:
 

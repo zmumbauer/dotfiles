@@ -11,6 +11,16 @@ DEFAULT_SSH_KEYS=(id_ed25519 id_ecdsa id_rsa)
 
 WARNINGS=()
 GITHUB_KEY_CREATED=0
+RUN_HOMEBREW=0
+RUN_GITHUB=0
+RUN_SHELL=0
+RUN_GIT_CONFIG=0
+RUN_VIM=0
+RUN_ASDF=0
+RUN_NVIM=0
+RUN_TMUX=0
+RUN_EZA=0
+RUN_XCODE=0
 
 log() {
   printf '%s\n' "$*"
@@ -22,8 +32,152 @@ warn() {
   printf 'WARNING: %s\n' "$message" >&2
 }
 
+usage() {
+  cat <<'EOF'
+Usage: ./install.sh [SECTION...]
+
+When no section flags are provided, all setup sections run.
+When one or more section flags are provided, only those sections run.
+
+Sections:
+  --homebrew  Install Homebrew and Brewfile packages
+  --github    Configure git identity and GitHub SSH access
+  --configs   Run all config-related sections
+  --shell     Symlink the shell config files
+  --git       Symlink the git config file
+  --vim       Symlink the Vim config
+  --asdf      Install asdf plugins and their latest versions
+  --nvim      Symlink the Neovim config and install lazy.nvim
+  --tmux      Symlink tmux config and install TPM
+  --eza       Symlink the eza theme config
+  --xcode     Install Xcode Command Line Tools on macOS
+  --all       Run all sections
+  -h, --help  Show this help
+EOF
+}
+
 command_exists() {
   command -v "$1" >/dev/null 2>&1
+}
+
+enable_all_sections() {
+  RUN_HOMEBREW=1
+  RUN_GITHUB=1
+  RUN_SHELL=1
+  RUN_GIT_CONFIG=1
+  RUN_VIM=1
+  RUN_ASDF=1
+  RUN_NVIM=1
+  RUN_TMUX=1
+  RUN_EZA=1
+  RUN_XCODE=1
+}
+
+enable_all_config_sections() {
+  RUN_SHELL=1
+  RUN_GIT_CONFIG=1
+  RUN_VIM=1
+  RUN_NVIM=1
+  RUN_TMUX=1
+  RUN_EZA=1
+}
+
+print_selected_sections() {
+  local sections=()
+  local section=""
+  local section_list=""
+
+  [[ "$RUN_HOMEBREW" -eq 1 ]] && sections+=("homebrew")
+  [[ "$RUN_GITHUB" -eq 1 ]] && sections+=("github")
+  [[ "$RUN_SHELL" -eq 1 ]] && sections+=("shell")
+  [[ "$RUN_GIT_CONFIG" -eq 1 ]] && sections+=("git")
+  [[ "$RUN_VIM" -eq 1 ]] && sections+=("vim")
+  [[ "$RUN_ASDF" -eq 1 ]] && sections+=("asdf")
+  [[ "$RUN_NVIM" -eq 1 ]] && sections+=("nvim")
+  [[ "$RUN_TMUX" -eq 1 ]] && sections+=("tmux")
+  [[ "$RUN_EZA" -eq 1 ]] && sections+=("eza")
+  [[ "$RUN_XCODE" -eq 1 ]] && sections+=("xcode")
+
+  for section in "${sections[@]}"; do
+    if [[ -n "$section_list" ]]; then
+      section_list="${section_list}, "
+    fi
+    section_list="${section_list}${section}"
+  done
+
+  log "Running setup sections: $section_list"
+}
+
+parse_args() {
+  local section_flag_seen=0
+  local force_all=0
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --homebrew)
+        RUN_HOMEBREW=1
+        section_flag_seen=1
+        ;;
+      --github)
+        RUN_GITHUB=1
+        section_flag_seen=1
+        ;;
+      --configs)
+        enable_all_config_sections
+        section_flag_seen=1
+        ;;
+      --shell)
+        RUN_SHELL=1
+        section_flag_seen=1
+        ;;
+      --git)
+        RUN_GIT_CONFIG=1
+        section_flag_seen=1
+        ;;
+      --vim)
+        RUN_VIM=1
+        section_flag_seen=1
+        ;;
+      --asdf)
+        RUN_ASDF=1
+        section_flag_seen=1
+        ;;
+      --nvim)
+        RUN_NVIM=1
+        section_flag_seen=1
+        ;;
+      --tmux)
+        RUN_TMUX=1
+        section_flag_seen=1
+        ;;
+      --eza)
+        RUN_EZA=1
+        section_flag_seen=1
+        ;;
+      --xcode)
+        RUN_XCODE=1
+        section_flag_seen=1
+        ;;
+      --all)
+        force_all=1
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        warn "Unknown option: $1"
+        usage >&2
+        exit 1
+        ;;
+    esac
+
+    shift
+  done
+
+  if [[ "$force_all" -eq 1 || "$section_flag_seen" -eq 0 ]]; then
+    enable_all_sections
+  fi
 }
 
 ensure_homebrew_env() {
@@ -415,19 +569,34 @@ ensure_symlink() {
   log "Created symlink: $target_path -> $source_path"
 }
 
-sym_link_configs() {
+symlink_shell_configs() {
   ensure_symlink "$REPO_ROOT/config_files/zshrc" "$HOME/.zshrc"
   ensure_symlink "$REPO_ROOT/config_files/p10k.zsh" "$HOME/.p10k.zsh"
-  ensure_symlink "$REPO_ROOT/config_files/vimrc" "$HOME/.vimrc"
-  ensure_symlink "$REPO_ROOT/config_files/gitconfig" "$HOME/.gitconfig"
-  ensure_symlink "$REPO_ROOT/config_files/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
-  ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
   ensure_symlink "$REPO_ROOT/config_files/aliases.zsh" "$HOME/.aliases.zsh"
   ensure_symlink "$REPO_ROOT/config_files/zshrc_env" "$HOME/.zshrc_env"
-  ensure_symlink "$REPO_ROOT/vim" "$HOME/.vim"
-  ensure_symlink "$REPO_ROOT/nvim" "$HOME/.config/nvim"
-  ensure_symlink "$REPO_ROOT/config_files/eza/themes/tokyonight.yml" "$HOME/Library/Application Support/eza/theme.yml"
   ensure_symlink "$REPO_ROOT/config_files/nvm.zsh" "$HOME/.nvm.zsh"
+}
+
+symlink_git_config() {
+  ensure_symlink "$REPO_ROOT/config_files/gitconfig" "$HOME/.gitconfig"
+}
+
+symlink_vim_config() {
+  ensure_symlink "$REPO_ROOT/config_files/vimrc" "$HOME/.vimrc"
+  ensure_symlink "$REPO_ROOT/vim" "$HOME/.vim"
+}
+
+symlink_nvim_config() {
+  ensure_symlink "$REPO_ROOT/nvim" "$HOME/.config/nvim"
+}
+
+symlink_tmux_config() {
+  ensure_symlink "$REPO_ROOT/config_files/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
+  ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
+}
+
+symlink_eza_config() {
+  ensure_symlink "$REPO_ROOT/config_files/eza/themes/tokyonight.yml" "$HOME/Library/Application Support/eza/theme.yml"
 }
 
 asdf_plugin_installed() {
@@ -554,14 +723,52 @@ print_summary() {
 }
 
 main() {
-  install_homebrew
-  install_homebrew_packages
-  configure_github
-  sym_link_configs
-  install_asdf_libraries
-  install_nvim_plugin_manager
-  install_tmux_plugin_manager
-  install_xcode_cli
+  parse_args "$@"
+  print_selected_sections
+
+  if [[ "$RUN_HOMEBREW" -eq 1 ]]; then
+    install_homebrew
+    install_homebrew_packages
+  fi
+
+  if [[ "$RUN_GITHUB" -eq 1 ]]; then
+    configure_github
+  fi
+
+  if [[ "$RUN_SHELL" -eq 1 ]]; then
+    symlink_shell_configs
+  fi
+
+  if [[ "$RUN_GIT_CONFIG" -eq 1 ]]; then
+    symlink_git_config
+  fi
+
+  if [[ "$RUN_VIM" -eq 1 ]]; then
+    symlink_vim_config
+  fi
+
+  if [[ "$RUN_ASDF" -eq 1 ]]; then
+    install_asdf_libraries
+  fi
+
+  if [[ "$RUN_NVIM" -eq 1 ]]; then
+    symlink_nvim_config
+    install_nvim_plugin_manager
+  fi
+
+  if [[ "$RUN_TMUX" -eq 1 ]]; then
+    symlink_tmux_config
+    install_tmux_plugin_manager
+  fi
+
+  if [[ "$RUN_EZA" -eq 1 ]]; then
+    symlink_eza_config
+  fi
+
+  if [[ "$RUN_XCODE" -eq 1 ]]; then
+    install_xcode_cli
+  fi
+
   print_summary
 }
 
