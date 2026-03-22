@@ -39,7 +39,8 @@ Config-related sections are individually selectable with flags like `--shell`,
 convenience alias that runs all of those config sections together.
 `--remote-dev` installs a minimal Homebrew toolchain (`git`, `gh`, `tmux`,
 `zsh`, and `oh-my-posh`) and then runs the matching `github`, `shell`, and
-`tmux` setup sections without installing the full `Brewfile`.
+`tmux` setup sections without installing the full `Brewfile`. That package set
+lives in `./Brewfile.remote-dev`.
 
 Manual follow-up after `./install.sh`:
 

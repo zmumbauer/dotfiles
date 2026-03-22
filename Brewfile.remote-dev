@@ -1,0 +1,9 @@
+# Minimal Homebrew bundle for remote-development containers.
+
+tap "jandedobbeleer/oh-my-posh"
+
+brew "git"
+brew "gh"
+brew "tmux"
+brew "zsh"
+brew "oh-my-posh"
