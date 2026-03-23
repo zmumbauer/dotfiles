@@ -2,6 +2,13 @@
 
 This repo manages shell, tmux, editor, and related local configuration.
 
+## Repo Layout
+
+- `config_files/` holds tracked home-directory config files and shell/tmux assets.
+- `terminal/` holds importable terminal app exports such as iTerm2 and Terminal.app profiles.
+- `nvim/` is the first-party Neovim overlay for this repo; its vendored base config lives under `nvim/vendor/neovim-dotfiles`.
+- `vim/` is a small classic Vim runtime kept for remote or minimal machines that do not have Neovim.
+
 ## Bootstrap
 
 Run the installer from the repo root with:
@@ -65,7 +72,7 @@ Manual follow-up after `./install.sh`:
 
 - In the Mac App Store, sign in before running `./install.sh` if you want the Brewfile-managed App Store apps installed automatically.
 - In iTerm2, set the font to `Source Code Pro for Powerline`.
-- In iTerm2, import the settings stored in this project.
+- In iTerm2, import the settings stored in `terminal/`.
 - Install Cactus VPN manually from https://www.cactusvpn.com/.
 
 If you want to force the GitHub setup flow even when the machine already appears

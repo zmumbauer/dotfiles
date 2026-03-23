@@ -19,7 +19,7 @@
 	<key>AiMaxTokens</key>
 	<integer>400000</integer>
 	<key>AiModel</key>
-	<string>gpt-5.1</string>
+	<string>gpt-5.2</string>
 	<key>AiResponseMaxTokens</key>
 	<integer>128000</integer>
 	<key>AitermURL</key>
@@ -1292,6 +1292,8 @@
 			<true/>
 			<key>Window Type</key>
 			<integer>0</integer>
+			<key>Working Directory</key>
+			<string>/Users/zachmumbauer</string>
 		</dict>
 		<dict>
 			<key>ASCII Anti Aliased</key>
@@ -1646,6 +1648,8 @@
 			<true/>
 			<key>Window Type</key>
 			<integer>2</integer>
+			<key>Working Directory</key>
+			<string>/Users/zachmumbauer</string>
 		</dict>
 	</array>
 	<key>OnlyWhenMoreTabs</key>
