@@ -641,7 +641,7 @@ ensure_repo_submodule() {
 }
 
 symlink_shell_configs() {
-  ensure_repo_submodule "config_files/ohmyzsh"
+  ensure_repo_submodule "vendor/ohmyzsh"
   ensure_symlink "$REPO_ROOT/config_files/zshrc" "$HOME/.zshrc"
   ensure_symlink "$REPO_ROOT/config_files/p10k.zsh" "$HOME/.p10k.zsh"
   ensure_symlink "$REPO_ROOT/config_files/aliases.zsh" "$HOME/.aliases.zsh"
@@ -664,8 +664,8 @@ symlink_nvim_config() {
 }
 
 symlink_tmux_config() {
-  ensure_repo_submodule "config_files/ohmytmux"
-  ensure_symlink "$REPO_ROOT/config_files/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
+  ensure_repo_submodule "vendor/ohmytmux"
+  ensure_symlink "$REPO_ROOT/vendor/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
   ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
 }
 

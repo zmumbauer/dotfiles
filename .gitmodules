@@ -2,11 +2,11 @@
 	path = nvim
 	url = https://github.com/zmumbauer/nvim
 	branch = main
-[submodule "config_files/ohmytmux"]
-	path = config_files/ohmytmux
+[submodule "vendor/ohmytmux"]
+	path = vendor/ohmytmux
 	url = https://github.com/gpakosz/.tmux.git
 	branch = master
-[submodule "config_files/ohmyzsh"]
-	path = config_files/ohmyzsh
+[submodule "vendor/ohmyzsh"]
+	path = vendor/ohmyzsh
 	url = https://github.com/ohmyzsh/ohmyzsh.git
 	branch = master

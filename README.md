@@ -4,7 +4,8 @@ This repo manages shell, tmux, editor, and related local configuration.
 
 ## Repo Layout
 
-- `config_files/` holds tracked home-directory config files and shell/tmux assets.
+- `config_files/` holds tracked first-party home-directory config files and related assets.
+- `vendor/` holds third-party repos managed in-tree, such as `ohmyzsh` and `ohmytmux`.
 - `terminal/` holds importable terminal app exports such as iTerm2 and Terminal.app profiles.
 - `nvim/` is the first-party Neovim overlay for this repo; its vendored base config lives under `nvim/vendor/neovim-dotfiles`.
 - `vim/` is a small classic Vim runtime kept for remote or minimal machines that do not have Neovim.
@@ -100,8 +101,8 @@ What it does:
 Current submodule branches:
 
 - `nvim` tracks `main`
-- `config_files/ohmyzsh` tracks `master`
-- `config_files/ohmytmux` tracks `master`
+- `vendor/ohmyzsh` tracks `master`
+- `vendor/ohmytmux` tracks `master`
 
 Important behavior:
 

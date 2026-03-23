@@ -4,8 +4,8 @@
 
 export DOTFILES_PATH="$(dirname $(dirname $(readlink -f ${(%):-%N})))"
 
-# Path to your oh-my-zsh installation.
-export ZSH="${DOTFILES_PATH}/config_files/ohmyzsh"
+# Path to the vendored oh-my-zsh installation.
+export ZSH="${DOTFILES_PATH}/vendor/ohmyzsh"
 export ZSH_CUSTOM="${DOTFILES_PATH}/config_files/ohmyzsh-custom"
 
 # Path modifications
