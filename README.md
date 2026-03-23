@@ -40,15 +40,15 @@ git clone https://github.com/zmumbauer/dotfiles.git && cd dotfiles && GITHUB_USE
 Use HTTPS for the first clone because GitHub SSH is configured by the installer.
 `./install.sh --remote-dev` initializes the shell and tmux submodules it needs.
 
-If you want the Neovim setup after GitHub SSH is working, initialize the Neovim
-submodules and then run the Neovim section:
+If you want the Neovim setup later, initialize the Neovim submodules and then run
+the Neovim section:
 
 ```zsh
 git submodule update --init nvim && git -C nvim submodule update --init --recursive && ./install.sh --nvim
 ```
 
-That extra step is separate because the Neovim overlay depends on
-`nvim/vendor/neovim-dotfiles`, which is fetched over SSH.
+That extra step is separate because the Neovim overlay depends on the nested
+submodule `nvim/vendor/neovim-dotfiles`.
 
 When no section flags are provided, `./install.sh` runs every section. Use
 `./install.sh --help` to see the full list of available section flags.
