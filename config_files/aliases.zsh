@@ -13,7 +13,11 @@ alias gfp="git add . && git commit --amend --no-edit && gp -f"
 alias gi="gemini"
 alias cl="claude"
 alias c="codex --yolo"
-alias ls='eza --long --header --icons --git'
+alias ls='eza --group-directories-first --icons=always --git-ignore'
+alias l='eza --all --long --header --group --icons=always --group-directories-first --time-style=long-iso --git-ignore'
+alias la='eza --all --group-directories-first --icons=always'
+alias ll='eza --long --header --group --icons=always --git --group-directories-first --time-style=long-iso'
+alias lt='eza --tree --level=2 --icons=always --group-directories-first --git-ignore'
 alias rgs="rg --color=always --line-number --smart-case --hidden --glob '!{.git,node_modules,venv,dist,build}'"
 alias kill-panel="tmux kill-pane -t"
 
@@ -27,12 +31,30 @@ co() {
   fi
 }
 
-export BAT_THEME="Coldark-Cold"
+export BAT_THEME="Visual Studio Dark+"
 
 if command -v bat >/dev/null 2>&1; then
-  alias cat='bat --style=plain --paging=never'
-  alias ccat='bat --theme="Coldark-Cold" --style=full --paging=always'
+  unalias cat ccat >/dev/null 2>&1 || true
+  cat() {
+    if [[ -t 0 && -t 1 ]]; then
+      command bat --theme="$BAT_THEME" --style=full --paging=auto "$@"
+    else
+      command bat --style=plain --paging=never "$@"
+    fi
+  }
+  ccat() {
+    cat "$@"
+  }
 elif command -v batcat >/dev/null 2>&1; then
-  alias cat='batcat --style=plain --paging=never'
-  alias ccat='batcat --theme="Coldark-Cold" --style=full --paging=always'
+  unalias cat ccat >/dev/null 2>&1 || true
+  cat() {
+    if [[ -t 0 && -t 1 ]]; then
+      command batcat --theme="$BAT_THEME" --style=full --paging=auto "$@"
+    else
+      command batcat --style=plain --paging=never "$@"
+    fi
+  }
+  ccat() {
+    cat "$@"
+  }
 fi

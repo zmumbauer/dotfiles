@@ -20,6 +20,7 @@ RUN_VIM=0
 RUN_ASDF=0
 RUN_NVIM=0
 RUN_TMUX=0
+RUN_WEZTERM=0
 RUN_EZA=0
 RUN_XCODE=0
 
@@ -51,6 +52,7 @@ Sections:
   --asdf      Install asdf plugins and their latest versions
   --nvim      Symlink the Neovim config and install lazy.nvim
   --tmux      Symlink tmux config and install TPM
+  --wezterm   Symlink the WezTerm config
   --eza       Symlink the eza theme config
   --xcode     Install Xcode Command Line Tools on macOS
   --all       Run all sections
@@ -71,6 +73,7 @@ enable_all_sections() {
   RUN_ASDF=1
   RUN_NVIM=1
   RUN_TMUX=1
+  RUN_WEZTERM=1
   RUN_EZA=1
   RUN_XCODE=1
 }
@@ -81,6 +84,7 @@ enable_all_config_sections() {
   RUN_VIM=1
   RUN_NVIM=1
   RUN_TMUX=1
+  RUN_WEZTERM=1
   RUN_EZA=1
 }
 
@@ -98,6 +102,7 @@ print_selected_sections() {
   [[ "$RUN_ASDF" -eq 1 ]] && sections+=("asdf")
   [[ "$RUN_NVIM" -eq 1 ]] && sections+=("nvim")
   [[ "$RUN_TMUX" -eq 1 ]] && sections+=("tmux")
+  [[ "$RUN_WEZTERM" -eq 1 ]] && sections+=("wezterm")
   [[ "$RUN_EZA" -eq 1 ]] && sections+=("eza")
   [[ "$RUN_XCODE" -eq 1 ]] && sections+=("xcode")
 
@@ -158,6 +163,10 @@ parse_args() {
         ;;
       --tmux)
         RUN_TMUX=1
+        section_flag_seen=1
+        ;;
+      --wezterm)
+        RUN_WEZTERM=1
         section_flag_seen=1
         ;;
       --eza)
@@ -292,14 +301,16 @@ install_mac_app_store_apps() {
 
 install_brew_bundle() {
   local brewfile="$1"
+  local brew_prefix=""
 
   if [[ ! -f "$brewfile" ]]; then
     warn "Brewfile not found at $brewfile."
     return 0
   fi
 
+  brew_prefix="$(brew --prefix 2>/dev/null || true)"
   log "Installing Homebrew bundle from $brewfile..."
-  if ! HOMEBREW_BUNDLE_MAS_SKIP=1 brew bundle install --file "$brewfile" --no-upgrade; then
+  if ! PATH="${brew_prefix:+$brew_prefix/bin:$brew_prefix/sbin:}$PATH" HOMEBREW_BUNDLE_MAS_SKIP=1 brew bundle install --file "$brewfile" --no-upgrade; then
     warn "Homebrew bundle install failed. Review the Homebrew output above."
     return 0
   fi
@@ -673,6 +684,12 @@ symlink_tmux_config() {
   ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$xdg_config_home/tmux/tmux.conf.local"
 }
 
+symlink_wezterm_config() {
+  local xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+  ensure_symlink "$REPO_ROOT/config_files/wezterm/wezterm.lua" "$xdg_config_home/wezterm/wezterm.lua"
+}
+
 symlink_eza_config() {
   ensure_symlink "$REPO_ROOT/config_files/eza/themes/tokyonight.yml" "$HOME/Library/Application Support/eza/theme.yml"
 }
@@ -841,6 +858,10 @@ main() {
   if [[ "$RUN_TMUX" -eq 1 ]]; then
     symlink_tmux_config
     install_tmux_plugin_manager
+  fi
+
+  if [[ "$RUN_WEZTERM" -eq 1 ]]; then
+    symlink_wezterm_config
   fi
 
   if [[ "$RUN_EZA" -eq 1 ]]; then

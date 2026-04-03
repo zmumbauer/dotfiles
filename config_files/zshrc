@@ -50,6 +50,32 @@ fi
 # Add external completions before Oh My Zsh initializes compinit.
 fpath=("$HOME/.docker/completions" $fpath)
 
+if command -v fd >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='fd --hidden --strip-cwd-prefix --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type=d --hidden --strip-cwd-prefix --exclude .git'
+
+  _fzf_compgen_path() {
+    fd --hidden --exclude .git . "$1"
+  }
+
+  _fzf_compgen_dir() {
+    fd --type=d --hidden --exclude .git . "$1"
+  }
+fi
+
+if command -v fzf >/dev/null 2>&1; then
+  export FZF_DEFAULT_OPTS=$'--height=75%\n--layout=reverse\n--border=rounded\n--info=inline-right\n--preview-window=right,60%,border-left,wrap\n--bind=ctrl-/:toggle-preview'
+
+  if command -v bat >/dev/null 2>&1 && command -v eza >/dev/null 2>&1; then
+    export FZF_DEFAULT_OPTS="${FZF_DEFAULT_OPTS}"$'\n'"--preview 'if [[ -d {} ]]; then eza --tree --level=2 --color=always --icons=always --group-directories-first --git-ignore -- {} | head -200; elif [[ -f {} ]]; then bat --color=always --style=numbers --line-range=:200 -- {}; else printf \"%s\\n\" {}; fi'"
+  fi
+
+  if command -v eza >/dev/null 2>&1; then
+    export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always --icons=always --group-directories-first --git-ignore -- {} | head -200'"
+  fi
+fi
+
 # Plugins
 plugins=(
   1password
@@ -93,12 +119,16 @@ if command -v eza >/dev/null 2>&1; then
   plugins+=(eza)
 fi
 
+if command -v fzf >/dev/null 2>&1; then
+  plugins+=(fzf)
+fi
+
 if command -v strfile >/dev/null 2>&1; then
   plugins+=(hitchhiker)
 fi
 
 if [[ "$OSTYPE" == darwin* ]]; then
-  plugins+=(iterm2 macos)
+  plugins+=(macos)
 fi
 
 source "${ZSH}/oh-my-zsh.sh"
@@ -158,6 +188,32 @@ function update_dotfiles() {
 
 function add_mas_app() {
   "${DOTFILES_PATH}/scripts/add_mas_app.sh" "$@"
+}
+
+brew_bundle_env_path() {
+  local brew_prefix=""
+
+  if command -v brew >/dev/null 2>&1; then
+    brew_prefix="$(brew --prefix 2>/dev/null)"
+  fi
+
+  if [[ -n "$brew_prefix" ]]; then
+    printf '%s/bin:%s/sbin:%s' "$brew_prefix" "$brew_prefix" "$PATH"
+  else
+    printf '%s' "$PATH"
+  fi
+}
+
+brew_bundle_check() {
+  PATH="$(brew_bundle_env_path)" brew bundle check --file "${DOTFILES_PATH}/Brewfile" --no-upgrade "$@"
+}
+
+brew_bundle_sync() {
+  PATH="$(brew_bundle_env_path)" HOMEBREW_BUNDLE_MAS_SKIP=1 brew bundle install --file "${DOTFILES_PATH}/Brewfile" --no-upgrade "$@"
+}
+
+brew_bundle_upgrade() {
+  PATH="$(brew_bundle_env_path)" HOMEBREW_BUNDLE_MAS_SKIP=1 brew bundle install --file "${DOTFILES_PATH}/Brewfile" --upgrade "$@"
 }
 
 # SYNOPSIS
@@ -295,8 +351,10 @@ fi
 
 # Oh My Posh
 if command -v oh-my-posh >/dev/null 2>&1; then
-  eval "$(oh-my-posh init zsh --config ${DOTFILES_PATH}/config_files/ohmyposh/kushal.omp.json)"
+  eval "$(oh-my-posh init zsh --config ${DOTFILES_PATH}/config_files/ohmyposh/zmumbauer.omp.json)"
 fi
 
 # Added by Antigravity
 export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
+eval $(thefuck --alias)

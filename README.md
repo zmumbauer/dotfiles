@@ -6,7 +6,6 @@ This repo manages shell, tmux, editor, and related local configuration.
 
 - `config_files/` holds tracked first-party home-directory config files and related assets.
 - `vendor/` holds third-party repos managed in-tree, such as `ohmyzsh` and `ohmytmux`.
-- `terminal/` holds importable terminal app exports such as iTerm2 and Terminal.app profiles.
 - `nvim/` is the first-party Neovim overlay for this repo; its vendored base config lives under `nvim/vendor/neovim-dotfiles`.
 - `vim/` is a small classic Vim runtime kept for remote or minimal machines that do not have Neovim.
 
@@ -62,7 +61,7 @@ When no section flags are provided, `./install.sh` runs every section. Use
 `./install.sh --help` to see the full list of available section flags.
 
 Config-related sections are individually selectable with flags like `--shell`,
-`--git`, `--vim`, `--nvim`, `--tmux`, and `--eza`. `--configs` is a
+`--git`, `--vim`, `--nvim`, `--tmux`, `--wezterm`, and `--eza`. `--configs` is a
 convenience alias that runs all of those config sections together.
 `--remote-dev` installs a minimal Homebrew toolchain (`git`, `gh`, `tmux`,
 `zsh`, and `oh-my-posh`) and then runs the matching `github`, `shell`, and
@@ -72,8 +71,6 @@ lives in `./Brewfile.remote-dev`.
 Manual follow-up after `./install.sh`:
 
 - In the Mac App Store, sign in before running `./install.sh` if you want the Brewfile-managed App Store apps installed automatically.
-- In iTerm2, set the font to `Source Code Pro for Powerline`.
-- In iTerm2, import the settings stored in `terminal/`.
 - Install Cactus VPN manually from https://www.cactusvpn.com/.
 
 If you want to force the GitHub setup flow even when the machine already appears
@@ -154,10 +151,16 @@ mas outdated
 
 `./install.sh --homebrew` uses `brew bundle install --file Brewfile --no-upgrade`, so it is the safe "sync me to the current Brewfile" command.
 
+From an interactive Zsh session, you can run the equivalent wrapper directly:
+
+```zsh
+brew_bundle_sync
+```
+
 4. Upgrade Brewfile-managed formulae and casks to the latest available versions:
 
 ```zsh
-brew bundle install --file Brewfile --upgrade
+brew_bundle_upgrade
 ```
 
 5. If you also want Brewfile-managed Mac App Store apps updated, make sure you are signed into the App Store, then run:
@@ -168,7 +171,7 @@ mas upgrade
 
 Useful checks:
 
-- `brew bundle check --file Brewfile --no-upgrade` verifies that everything declared in `Brewfile` is installed.
+- `brew_bundle_check` verifies that everything declared in `Brewfile` is installed.
 - `brew livecheck --cask zmumbauer-cactusvpn zmumbauer-librescore` checks the custom casks in this repo for newer upstream versions.
 
 ## Adding Mac App Store Apps
