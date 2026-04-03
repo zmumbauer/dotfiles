@@ -664,9 +664,13 @@ symlink_nvim_config() {
 }
 
 symlink_tmux_config() {
+  local xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+
   ensure_repo_submodule "vendor/ohmytmux"
   ensure_symlink "$REPO_ROOT/vendor/ohmytmux/.tmux.conf" "$HOME/.tmux.conf"
   ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$HOME/.tmux.conf.local"
+  ensure_symlink "$REPO_ROOT/vendor/ohmytmux/.tmux.conf" "$xdg_config_home/tmux/tmux.conf"
+  ensure_symlink "$REPO_ROOT/config_files/tmux.conf.local" "$xdg_config_home/tmux/tmux.conf.local"
 }
 
 symlink_eza_config() {
