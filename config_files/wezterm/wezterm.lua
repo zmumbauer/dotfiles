@@ -80,7 +80,7 @@ config.font = wezterm.font_with_fallback({
   },
   "Monaco",
 })
-config.font_size = 12
+config.font_size = 14
 config.line_height = .85
 config.use_ime = true
 config.bold_brightens_ansi_colors = true
