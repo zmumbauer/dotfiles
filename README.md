@@ -68,6 +68,20 @@ convenience alias that runs all of those config sections together.
 `tmux` setup sections without installing the full `Brewfile`. That package set
 lives in `./Brewfile.remote-dev`.
 
+## Tmux Shortcuts
+
+This tmux setup uses `Ctrl-a` as the prefix instead of the default `Ctrl-b`.
+Uppercase and lowercase bindings are different keys.
+
+- `prefix + P` opens a scratch shell popup.
+- `prefix + S` opens a session picker popup using `fzf`, then switches the client to the selected session.
+- `prefix + G` opens `git status` in a popup rooted at the current pane path.
+- `prefix + H` opens a process monitor popup, preferring `btop` and falling back to `htop`.
+- `prefix + L` opens `lazygit` in a popup rooted at the current pane path, with a `git status` fallback when `lazygit` is unavailable.
+- `prefix + s` remains tmux's native session tree.
+- `prefix + p` remains tmux's paste-buffer binding.
+- Manual tmux-resurrect save is on `prefix + Alt-s`. Restore remains `prefix + R`.
+
 Manual follow-up after `./install.sh`:
 
 - In the Mac App Store, sign in before running `./install.sh` if you want the Brewfile-managed App Store apps installed automatically.

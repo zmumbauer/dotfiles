@@ -404,6 +404,24 @@ setw -g pane-base-index 0 #!important
 # nested sessions
 bind-key a send-prefix
 
+# popup workflows
+# requires tmux 3.2+ for display-popup
+
+# scratch shell
+bind-key P display-popup -E -w 80% -h 80% -T "scratch" "$SHELL"
+
+# session picker
+bind-key S display-popup -E -w 90% -h 85% -T "sessions" "$SHELL -lc 'session=$(tmux list-sessions -F \"#{session_name}\" | fzf --layout=reverse --height=100% --border=none --prompt=\"session > \" --header=\"enter to switch\" --bind=\"esc:abort\") && tmux switch-client -t \"\$session\"'"
+
+# git status in current path
+bind-key G display-popup -E -d '#{pane_current_path}' -w 90% -h 85% -T "git" "$SHELL -lc 'git status; exec $SHELL'"
+
+# process monitor
+bind-key H display-popup -E -w 85% -h 80% -T "monitor" "$SHELL -lc 'command -v btop >/dev/null 2>&1 && exec btop || exec htop'"
+
+# lazygit if installed, fallback to git status
+bind-key L display-popup -E -d '#{pane_current_path}' -w 90% -h 85% -T "lazygit" "$SHELL -lc 'command -v lazygit >/dev/null 2>&1 && lazygit || git status; exec $SHELL'"
+
 # if you don't want Oh my tmux! to alter a binding or a setting, use #!important
 # bind c new-window -c '#{pane_current_path}' #!important
 
@@ -453,7 +471,7 @@ set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @continuum-restore 'on'
 set -g @continuum-save-interval '10'
 set -g @resurrect-capture-pane-contents 'on'
-set -g @resurrect-save 'S'
+set -g @resurrect-save 'M-s'
 set -g @resurrect-restore 'R'
 
 
