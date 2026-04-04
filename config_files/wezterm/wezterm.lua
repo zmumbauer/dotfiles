@@ -1,7 +1,5 @@
 local wezterm = require("wezterm")
 
-local config = wezterm.config_builder()
-
 local function is_light_appearance()
   if wezterm.gui == nil then
     return false
@@ -10,7 +8,7 @@ local function is_light_appearance()
   return not wezterm.gui.get_appearance():find("Dark")
 end
 
-config.color_schemes = {
+local schemes = {
   ["devbox-dark"] = {
     foreground = "#dcdcdc",
     background = "#15191f",
@@ -71,6 +69,163 @@ config.color_schemes = {
   },
 }
 
+local base_palettes = {
+  dark = {
+    background = schemes["devbox-dark"].background,
+    chrome = "#1b2129",
+    surface = "#232a33",
+    text = schemes["devbox-dark"].foreground,
+    muted = "#8b94a7",
+    accent = schemes["devbox-dark"].brights[5],
+  },
+  light = {
+    background = schemes["devbox-light"].background,
+    chrome = "#eef2f7",
+    surface = "#e3e8f0",
+    text = schemes["devbox-light"].foreground,
+    muted = "#667085",
+    accent = "#7a8cff",
+  },
+}
+
+local function hex_to_rgb(hex)
+  local value = hex:gsub("#", "")
+  return tonumber(value:sub(1, 2), 16), tonumber(value:sub(3, 4), 16), tonumber(value:sub(5, 6), 16)
+end
+
+local function blend(base, overlay, ratio)
+  local base_r, base_g, base_b = hex_to_rgb(base)
+  local overlay_r, overlay_g, overlay_b = hex_to_rgb(overlay)
+
+  local function channel(from, to)
+    return math.floor((from * (1 - ratio)) + (to * ratio) + 0.5)
+  end
+
+  return string.format(
+    "#%02x%02x%02x",
+    channel(base_r, overlay_r),
+    channel(base_g, overlay_g),
+    channel(base_b, overlay_b)
+  )
+end
+
+local function current_palette()
+  return is_light_appearance() and base_palettes.light or base_palettes.dark
+end
+
+local function build_tab_bar_palette(palette)
+  return {
+    background = palette.chrome,
+    inactive_fill = palette.surface,
+    inactive_text = palette.muted,
+    inactive_hover_fill = blend(palette.surface, palette.accent, 0.10),
+    inactive_hover_text = palette.text,
+    active_fill = blend(palette.surface, palette.accent, 0.22),
+    active_text = palette.text,
+    new_tab_fill = palette.chrome,
+    new_tab_text = palette.muted,
+    new_tab_hover_fill = blend(palette.chrome, palette.accent, 0.10),
+    new_tab_hover_text = palette.text,
+  }
+end
+
+local function trim(text)
+  return (text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function extract_tmux_session_name(title)
+  local session_name = trim((title or ""):match("^(.-)%s+·%s+%d+%s+.+$"))
+  if session_name ~= "" then
+    return session_name
+  end
+end
+
+local function compact_title(tab_info)
+  local title = trim(tab_info.tab_title)
+  if title ~= "" then
+    return title
+  end
+
+  title = trim(tab_info.active_pane.title)
+  if title == "" then
+    return string.format("tab %d", tab_info.tab_index + 1)
+  end
+
+  local tmux_session_name = extract_tmux_session_name(title)
+  if tmux_session_name then
+    return tmux_session_name
+  end
+
+  if title:find("[/\\]") and not title:find("%s") then
+    title = title:gsub(".*[/\\]", "")
+  end
+
+  return title
+end
+
+wezterm.on("format-tab-title", function(tab, _, _, _, hover, max_width)
+  local palette = build_tab_bar_palette(current_palette())
+  local fill = palette.inactive_fill
+  local text = palette.inactive_text
+  local chrome_width = 5
+
+  if tab.is_active then
+    fill = palette.active_fill
+    text = palette.active_text
+  elseif hover then
+    fill = palette.inactive_hover_fill
+    text = palette.inactive_hover_text
+  end
+
+  local title = wezterm.truncate_right(compact_title(tab), math.max(8, max_width - chrome_width))
+
+  return wezterm.format({
+    { Background = { Color = palette.background } },
+    { Foreground = { Color = fill } },
+    { Text = "" },
+    { Background = { Color = fill } },
+    { Foreground = { Color = text } },
+    { Attribute = { Intensity = tab.is_active and "Bold" or "Normal" } },
+    { Text = " " .. title .. " " },
+    { Attribute = { Intensity = "Normal" } },
+    { Background = { Color = palette.background } },
+    { Foreground = { Color = fill } },
+    { Text = "" },
+    { Background = { Color = palette.background } },
+    { Text = " " },
+  })
+end)
+
+local config = wezterm.config_builder()
+local ui_palette = current_palette()
+local tab_bar = build_tab_bar_palette(ui_palette)
+
+config.color_schemes = schemes
+config.colors = {
+  tab_bar = {
+    background = tab_bar.background,
+    active_tab = {
+      bg_color = tab_bar.background,
+      fg_color = tab_bar.active_text,
+    },
+    inactive_tab = {
+      bg_color = tab_bar.background,
+      fg_color = tab_bar.inactive_text,
+    },
+    inactive_tab_hover = {
+      bg_color = tab_bar.background,
+      fg_color = tab_bar.inactive_hover_text,
+    },
+    new_tab = {
+      bg_color = tab_bar.new_tab_fill,
+      fg_color = tab_bar.new_tab_text,
+    },
+    new_tab_hover = {
+      bg_color = tab_bar.new_tab_hover_fill,
+      fg_color = tab_bar.new_tab_hover_text,
+    },
+  },
+}
 config.color_scheme = is_light_appearance() and "devbox-light" or "devbox-dark"
 config.term = "xterm-256color"
 config.font = wezterm.font_with_fallback({
@@ -100,7 +255,11 @@ config.window_decorations = "RESIZE"
 config.window_close_confirmation = "NeverPrompt"
 config.window_background_opacity = .9
 config.text_background_opacity = 1.0
-config.enable_tab_bar = false
+config.enable_tab_bar = true
+config.use_fancy_tab_bar = false
+config.hide_tab_bar_if_only_one_tab = true
+config.show_tab_index_in_tab_bar = false
+config.tab_max_width = 36
 config.macos_window_background_blur = 20
 config.visual_bell = {
   fade_in_function = "EaseIn",
