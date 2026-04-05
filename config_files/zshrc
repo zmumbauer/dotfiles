@@ -138,6 +138,12 @@ fi
 
 source "${ZSH}/oh-my-zsh.sh"
 
+# Prefer Atuin for interactive history search while keeping the rest of the
+# fzf plugin bindings available.
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh --disable-up-arrow --disable-ai)"
+fi
+
 # Auto-start tmux
 ZSH_TMUX_AUTOSTART=true
 

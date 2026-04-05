@@ -1,4 +1,5 @@
 local wezterm = require("wezterm")
+local act = wezterm.action
 
 local function is_light_appearance()
   if wezterm.gui == nil then
@@ -255,6 +256,21 @@ config.window_decorations = "RESIZE"
 config.window_close_confirmation = "NeverPrompt"
 config.window_background_opacity = .9
 config.text_background_opacity = 1.0
+config.keys = {
+  {
+    key = "r",
+    mods = "SUPER",
+    action = act.SendKey({
+      key = "r",
+      mods = "CTRL",
+    }),
+  },
+  {
+    key = "R",
+    mods = "SUPER|SHIFT",
+    action = act.ReloadConfiguration,
+  },
+}
 config.enable_tab_bar = true
 config.use_fancy_tab_bar = false
 config.hide_tab_bar_if_only_one_tab = true
