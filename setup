@@ -660,6 +660,9 @@ symlink_shell_configs() {
   ensure_symlink "$REPO_ROOT/config_files/nvm.zsh" "$HOME/.nvm.zsh"
   ensure_symlink "$REPO_ROOT/config_files/mpd/mpd.conf" "$HOME/.mpdconf"
   ensure_symlink "$REPO_ROOT/config_files/mpd/mpd.conf" "$HOME/.config/mpd/mpd.conf"
+  ensure_symlink "$REPO_ROOT/config_files/rmpc/config.ron" "$HOME/.config/rmpc/config.ron"
+  ensure_symlink "$REPO_ROOT/config_files/rmpc/themes/devbox.ron" "$HOME/.config/rmpc/themes/devbox.ron"
+  # ensure_symlink "$REPO_ROOT/config_files/stormy/stormy.toml" "$HOME/.config/stormy/stormy.toml"
   ensure_symlink "$REPO_ROOT/config_files/atuin/config.toml" "$HOME/.config/atuin/config.toml"
   ensure_symlink "$REPO_ROOT/config_files/atuin/themes/devbox.toml" "$HOME/.config/atuin/themes/devbox.toml"
 }
