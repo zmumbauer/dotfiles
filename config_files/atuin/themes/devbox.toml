@@ -1,0 +1,11 @@
+parent = "default"
+
+Base = "gainsboro"
+Title = "lightsteelblue"
+Muted = "lightslategray"
+Guidance = "slategray"
+Annotation = "steelblue"
+Important = "cornflowerblue"
+AlertInfo = "steelblue"
+AlertWarn = "goldenrod"
+AlertError = "indianred"
