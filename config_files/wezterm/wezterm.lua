@@ -242,10 +242,10 @@ config.use_ime = true
 config.bold_brightens_ansi_colors = true
 config.initial_cols = 80
 config.initial_rows = 25
-config.use_resize_increments = true
+config.use_resize_increments = false
 config.window_padding = {
-  left = 0,
-  right = 0,
+  left = 20,
+  right = 20,
   top = 0,
   bottom = 0,
 }
