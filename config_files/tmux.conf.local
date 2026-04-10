@@ -486,7 +486,7 @@ set -g allow-passthrough on
 
 # -- work-specific overrides ---------------------------------------------------
 
-run-shell -b 'work_conf="${TMUX_CONF_LOCAL%.local}.work"; [ -f "$work_conf" ] && "$TMUX_PROGRAM" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} source-file "$work_conf"'
+run-shell -b 'work_conf="${TMUX_CONF_LOCAL%.local}.work"; if [ -f "$work_conf" ]; then "$TMUX_PROGRAM" ${TMUX_SOCKET:+-S "$TMUX_SOCKET"} source-file "$work_conf"; fi'
 
 # -- custom variables ----------------------------------------------------------
 
