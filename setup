@@ -367,8 +367,42 @@ non_root_user_exists() {
   [[ -n "$user_id" && "$user_id" -ne 0 ]]
 }
 
+list_remote_dev_users() {
+  local uid_min=""
+
+  uid_min="$(awk '$1 == "UID_MIN" { print $2; exit }' /etc/login.defs 2>/dev/null || true)"
+  uid_min="${uid_min:-1000}"
+
+  getent passwd | awk -F: -v uid_min="$uid_min" '
+    $3 >= uid_min &&
+    $3 != 65534 &&
+    $6 != "" &&
+    $7 !~ /(nologin|false)$/ {
+      print $1
+    }
+  '
+}
+
+create_remote_dev_user() {
+  local username="$1"
+
+  if ! valid_username "$username"; then
+    warn "Invalid username: $username"
+    return 1
+  fi
+  if id "$username" >/dev/null 2>&1; then
+    warn "User '$username' already exists."
+    return 1
+  fi
+
+  log "Creating non-root user '$username'..." >&2
+  useradd --create-home --shell /bin/bash "$username"
+}
+
 prompt_remote_dev_user() {
   local choice=""
+  local index=0
+  local existing_users=()
   local username="${REMOTE_DEV_USER:-}"
 
   if [[ -n "$username" ]]; then
@@ -378,13 +412,7 @@ prompt_remote_dev_user() {
     fi
 
     if flag_enabled "${REMOTE_DEV_CREATE_USER:-}"; then
-      if ! valid_username "$username"; then
-        warn "Invalid remote-dev username: $username"
-        return 1
-      fi
-
-      log "Creating non-root user '$username'..." >&2
-      useradd --create-home --shell /bin/bash "$username"
+      create_remote_dev_user "$username" || return 1
       printf '%s' "$username"
       return 0
     fi
@@ -398,37 +426,37 @@ prompt_remote_dev_user() {
     return 1
   fi
 
-  printf '%s\n' "Homebrew cannot run as root. Choose the non-root development account:" >&2
-  printf '%s\n' "  1) Select an existing user" >&2
-  printf '%s\n' "  2) Create a new user" >&2
-  read -r -p "Enter 1 or 2: " choice
+  mapfile -t existing_users < <(list_remote_dev_users)
 
-  case "$choice" in
-    1)
-      read -r -p "Existing username: " username
-      if ! non_root_user_exists "$username"; then
-        warn "'$username' is not an existing non-root user."
-        return 1
-      fi
-      ;;
-    2)
-      read -r -p "New username: " username
-      if ! valid_username "$username"; then
-        warn "Invalid username: $username"
-        return 1
-      fi
-      if id "$username" >/dev/null 2>&1; then
-        warn "User '$username' already exists. Select the existing-user option instead."
-        return 1
-      fi
-      log "Creating non-root user '$username'..." >&2
-      useradd --create-home --shell /bin/bash "$username"
-      ;;
-    *)
-      warn "Expected 1 or 2."
+  printf '%s\n' "Homebrew cannot run as root." >&2
+  if [[ "${#existing_users[@]}" -eq 0 ]]; then
+    printf '%s\n' "No non-root login users were found. Create a development account." >&2
+    read -r -p "New username: " username
+    create_remote_dev_user "$username" || return 1
+    printf '%s' "$username"
+    return 0
+  fi
+
+  printf '%s\n' "Choose the development account:" >&2
+  for index in "${!existing_users[@]}"; do
+    printf '  %d) %s\n' "$((index + 1))" "${existing_users[$index]}" >&2
+  done
+  printf '  %d) Create a new user\n' "$(( ${#existing_users[@]} + 1 ))" >&2
+  read -r -p "Enter a number: " choice
+
+  if [[ ! "$choice" =~ ^[0-9]+$ || "$choice" -lt 1 || "$choice" -gt $(( ${#existing_users[@]} + 1 )) ]]; then
+    warn "Invalid user selection: $choice"
+    return 1
+  fi
+
+  if [[ "$choice" -le "${#existing_users[@]}" ]]; then
+    username="${existing_users[$((choice - 1))]}"
+  else
+    read -r -p "New username: " username
+    if ! create_remote_dev_user "$username"; then
       return 1
-      ;;
-  esac
+    fi
+  fi
 
   printf '%s' "$username"
 }
