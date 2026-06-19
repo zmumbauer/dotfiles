@@ -63,10 +63,21 @@ When no section flags are provided, `./install.sh` runs every section. Use
 Config-related sections are individually selectable with flags like `--shell`,
 `--git`, `--vim`, `--nvim`, `--tmux`, `--wezterm`, and `--eza`. `--configs` is a
 convenience alias that runs all of those config sections together.
-`--remote-dev` installs a minimal Homebrew toolchain (`git`, `gh`, `tmux`,
-`zsh`, and `oh-my-posh`) and then runs the matching `github`, `shell`, and
+`--remote-dev` installs Homebrew and a minimal toolchain (`git`, `gh`, `eza`,
+`tmux`, `thefuck`, `zsh`, and `oh-my-posh`), changes the current user's login
+shell to the installed zsh, and then runs the matching `github`, `shell`, and
 `tmux` setup sections without installing the full `Brewfile`. That package set
-lives in `./Brewfile.remote-dev`.
+lives in `./Brewfile.remote-dev`. When run as root on an APT-based Linux host,
+including Proxmox/Debian, it prompts to select an existing non-root development
+user or create one. It then installs Homebrew and configures the environment as
+that user because Homebrew does not support running as root.
+
+For unattended root setup, select or create the account with environment
+variables:
+
+```zsh
+REMOTE_DEV_USER=developer REMOTE_DEV_CREATE_USER=1 ./install.sh --remote-dev
+```
 
 ## Tmux Shortcuts
 

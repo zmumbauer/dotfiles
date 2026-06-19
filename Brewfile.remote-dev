@@ -4,6 +4,8 @@ tap "jandedobbeleer/oh-my-posh"
 
 brew "git"
 brew "gh"
+brew "eza"
 brew "tmux"
+brew "thefuck"
 brew "zsh"
 brew "oh-my-posh"

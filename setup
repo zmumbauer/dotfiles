@@ -206,10 +206,15 @@ ensure_homebrew_env() {
     return 0
   fi
 
-  for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  for brew_bin in \
+    /opt/homebrew/bin/brew \
+    /usr/local/bin/brew \
+    /home/linuxbrew/.linuxbrew/bin/brew \
+    "$HOME/.linuxbrew/bin/brew"; do
     if [[ -x "$brew_bin" ]]; then
-      eval "$("$brew_bin" shellenv)"
-      return 0
+      if eval "$("$brew_bin" shellenv)" && command_exists brew; then
+        return 0
+      fi
     fi
   done
 
@@ -322,13 +327,285 @@ install_homebrew_packages() {
   install_brew_bundle "$(brewfile_path)"
 }
 
+verify_remote_dev_toolchain() {
+  local missing_commands=()
+  local required_command=""
+
+  for required_command in git gh eza tmux thefuck zsh oh-my-posh; do
+    if ! command_exists "$required_command"; then
+      missing_commands+=("$required_command")
+    fi
+  done
+
+  if [[ "${#missing_commands[@]}" -gt 0 ]]; then
+    warn "Remote-dev installation is incomplete. Missing commands: ${missing_commands[*]}"
+    return 1
+  fi
+
+  log "Remote-dev toolchain is installed and available."
+}
+
 install_remote_dev_packages() {
   if ! install_homebrew; then
     warn "Homebrew is unavailable, so remote-dev packages were skipped."
-    return 0
+    return 1
   fi
 
   install_brew_bundle "$(remote_dev_brewfile_path)"
+  verify_remote_dev_toolchain
+}
+
+valid_username() {
+  [[ "$1" =~ ^[a-z_][a-z0-9_-]*$ ]]
+}
+
+non_root_user_exists() {
+  local username="$1"
+  local user_id=""
+
+  user_id="$(id -u "$username" 2>/dev/null || true)"
+  [[ -n "$user_id" && "$user_id" -ne 0 ]]
+}
+
+prompt_remote_dev_user() {
+  local choice=""
+  local username="${REMOTE_DEV_USER:-}"
+
+  if [[ -n "$username" ]]; then
+    if non_root_user_exists "$username"; then
+      printf '%s' "$username"
+      return 0
+    fi
+
+    if flag_enabled "${REMOTE_DEV_CREATE_USER:-}"; then
+      if ! valid_username "$username"; then
+        warn "Invalid remote-dev username: $username"
+        return 1
+      fi
+
+      log "Creating non-root user '$username'..." >&2
+      useradd --create-home --shell /bin/bash "$username"
+      printf '%s' "$username"
+      return 0
+    fi
+
+    warn "REMOTE_DEV_USER '$username' does not exist. Set REMOTE_DEV_CREATE_USER=1 to create it."
+    return 1
+  fi
+
+  if [[ ! -t 0 ]]; then
+    warn "Root remote-dev setup needs an interactive terminal or REMOTE_DEV_USER."
+    return 1
+  fi
+
+  printf '%s\n' "Homebrew cannot run as root. Choose the non-root development account:" >&2
+  printf '%s\n' "  1) Select an existing user" >&2
+  printf '%s\n' "  2) Create a new user" >&2
+  read -r -p "Enter 1 or 2: " choice
+
+  case "$choice" in
+    1)
+      read -r -p "Existing username: " username
+      if ! non_root_user_exists "$username"; then
+        warn "'$username' is not an existing non-root user."
+        return 1
+      fi
+      ;;
+    2)
+      read -r -p "New username: " username
+      if ! valid_username "$username"; then
+        warn "Invalid username: $username"
+        return 1
+      fi
+      if id "$username" >/dev/null 2>&1; then
+        warn "User '$username' already exists. Select the existing-user option instead."
+        return 1
+      fi
+      log "Creating non-root user '$username'..." >&2
+      useradd --create-home --shell /bin/bash "$username"
+      ;;
+    *)
+      warn "Expected 1 or 2."
+      return 1
+      ;;
+  esac
+
+  printf '%s' "$username"
+}
+
+prepare_linuxbrew_for_user() {
+  local username="$1"
+  local brew_prefix="/home/linuxbrew/.linuxbrew"
+  local prefix_owner=""
+
+  if [[ -e "$brew_prefix" ]]; then
+    prefix_owner="$(stat -c '%U' "$brew_prefix" 2>/dev/null || true)"
+    if [[ -n "$prefix_owner" && "$prefix_owner" != "$username" ]]; then
+      warn "$brew_prefix is owned by '$prefix_owner'; Homebrew cannot safely be reassigned to '$username'."
+      return 1
+    fi
+  fi
+
+  mkdir -p "$brew_prefix"
+  chown -R "$username":"$(id -gn "$username")" /home/linuxbrew
+}
+
+prepare_remote_dev_repo_for_user() {
+  local username="$1"
+  local user_group=""
+  local user_home=""
+  local target_repo=""
+
+  user_group="$(id -gn "$username")"
+  user_home="$(getent passwd "$username" | awk -F: '{print $6}')"
+  if [[ -z "$user_home" ]]; then
+    warn "Could not determine the home directory for '$username'."
+    return 1
+  fi
+
+  target_repo="$user_home/dotfiles"
+  if [[ "$(realpath -m "$target_repo")" == "$REPO_ROOT" ]]; then
+    chown -R "$username:$user_group" "$target_repo"
+    printf '%s' "$target_repo"
+    return 0
+  fi
+
+  mkdir -p "$target_repo"
+  log "Copying the current dotfiles checkout to $target_repo..." >&2
+  cp -a "$REPO_ROOT/." "$target_repo/"
+  chown -R "$username:$user_group" "$target_repo"
+  printf '%s' "$target_repo"
+}
+
+install_linux_homebrew_prerequisites() {
+  if ! command_exists apt-get; then
+    warn "Automatic root handoff currently requires an APT-based Linux host."
+    return 1
+  fi
+
+  log "Installing Linuxbrew prerequisites..."
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
+    ca-certificates \
+    curl \
+    file \
+    git \
+    procps
+}
+
+configure_login_shell_for_user() {
+  local username="$1"
+  local zsh_path="/home/linuxbrew/.linuxbrew/bin/zsh"
+
+  if [[ ! -x "$zsh_path" ]]; then
+    warn "Homebrew zsh was not installed at $zsh_path."
+    return 1
+  fi
+
+  ensure_allowed_shell "$zsh_path" || return 1
+  log "Changing login shell for $username to $zsh_path..."
+  usermod --shell "$zsh_path" "$username"
+}
+
+handoff_root_remote_dev_install() {
+  local username=""
+  local user_home=""
+  local target_repo=""
+  local child_env=()
+
+  username="$(prompt_remote_dev_user)" || return 1
+  user_home="$(getent passwd "$username" | awk -F: '{print $6}')"
+
+  install_linux_homebrew_prerequisites
+  prepare_linuxbrew_for_user "$username"
+  target_repo="$(prepare_remote_dev_repo_for_user "$username")"
+
+  child_env=(
+    "HOME=$user_home"
+    "USER=$username"
+    "LOGNAME=$username"
+    "REMOTE_DEV_HANDOFF=1"
+    "SKIP_DEFAULT_SHELL=1"
+  )
+  [[ -n "${GITHUB_USERNAME:-}" ]] && child_env+=("GITHUB_USERNAME=$GITHUB_USERNAME")
+  [[ -n "${GITHUB_EMAIL:-}" ]] && child_env+=("GITHUB_EMAIL=$GITHUB_EMAIL")
+  [[ -n "${SSH_AUTH_SOCK:-}" ]] && child_env+=("SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
+  [[ -n "${TERM:-}" ]] && child_env+=("TERM=$TERM")
+
+  log "Continuing remote-dev setup as '$username'..."
+  runuser --user "$username" -- env "${child_env[@]}" \
+    /bin/bash -c 'cd "$1" && shift && exec ./install.sh "$@"' bash "$target_repo" "$@"
+  configure_login_shell_for_user "$username"
+
+  log "Remote-dev setup complete for '$username'. Start a login shell with: su - $username"
+}
+
+current_login_shell() {
+  local current_user="${USER:-$(id -un)}"
+
+  if command_exists getent; then
+    getent passwd "$current_user" | awk -F: '{print $7}'
+    return
+  fi
+
+  if command_exists dscl; then
+    dscl . -read "/Users/$current_user" UserShell 2>/dev/null | awk '{print $2}'
+    return
+  fi
+
+  printf '%s' "${SHELL:-}"
+}
+
+ensure_allowed_shell() {
+  local shell_path="$1"
+
+  [[ -f /etc/shells ]] || return 0
+  grep -Fxq "$shell_path" /etc/shells && return 0
+
+  log "Adding $shell_path to /etc/shells..."
+  if [[ -w /etc/shells ]]; then
+    printf '%s\n' "$shell_path" >> /etc/shells
+  elif command_exists sudo && sudo -n true 2>/dev/null; then
+    printf '%s\n' "$shell_path" | sudo tee -a /etc/shells >/dev/null
+  else
+    warn "Cannot add $shell_path to /etc/shells without passwordless sudo."
+    return 1
+  fi
+}
+
+configure_default_shell() {
+  local current_user="${USER:-$(id -un)}"
+  local current_shell=""
+  local zsh_path=""
+
+  if flag_enabled "${SKIP_DEFAULT_SHELL:-}"; then
+    return 0
+  fi
+
+  ensure_homebrew_env || true
+  zsh_path="$(command -v zsh 2>/dev/null || true)"
+  if [[ -z "$zsh_path" ]]; then
+    warn "zsh is unavailable, so the login shell was not changed."
+    return 0
+  fi
+
+  current_shell="$(current_login_shell)"
+  if [[ "$current_shell" == "$zsh_path" ]]; then
+    log "Login shell already set to $zsh_path. Skipping."
+    return 0
+  fi
+
+  ensure_allowed_shell "$zsh_path" || return 0
+
+  log "Changing login shell for $current_user to $zsh_path..."
+  if command_exists sudo && sudo -n true 2>/dev/null; then
+    if ! sudo chsh -s "$zsh_path" "$current_user"; then
+      warn "Failed to change the login shell for $current_user to $zsh_path."
+    fi
+  elif ! chsh -s "$zsh_path"; then
+    warn "Failed to change the login shell for $current_user to $zsh_path."
+  fi
 }
 
 prompt_for_value() {
@@ -826,6 +1103,15 @@ print_summary() {
 
 main() {
   parse_args "$@"
+
+  if [[ "$RUN_REMOTE_DEV" -eq 1 \
+    && "$(uname -s)" == "Linux" \
+    && "$(id -u)" -eq 0 \
+    && "${REMOTE_DEV_HANDOFF:-0}" != "1" ]]; then
+    handoff_root_remote_dev_install "$@"
+    return
+  fi
+
   print_selected_sections
 
   if [[ "$RUN_HOMEBREW" -eq 1 ]]; then
@@ -835,6 +1121,7 @@ main() {
 
   if [[ "$RUN_REMOTE_DEV" -eq 1 ]]; then
     install_remote_dev_packages
+    configure_default_shell
   fi
 
   if [[ "$RUN_GITHUB" -eq 1 ]]; then
