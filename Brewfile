@@ -2,15 +2,20 @@
 # Managed by hand.
 
 # Third-party taps
-tap "evanpurkhiser/personal"
-tap "rwx-research/tap"
-tap "hashicorp/tap"
-tap "jandedobbeleer/oh-my-posh"
-tap "lgrees/lgrees"
-tap "zmumbauer/local", "https://github.com/zmumbauer/dotfiles.git"
+# `trusted: true` pre-approves the tap so `brew bundle` can load its formulae
+# without prompting for `brew trust` on a fresh machine.
+tap "evanpurkhiser/personal", trusted: true
+tap "gromgit/brewtils", trusted: true
+tap "rwx-research/tap", trusted: true
+tap "hashicorp/tap", trusted: true
+tap "jandedobbeleer/oh-my-posh", trusted: true
+tap "lgrees/lgrees", trusted: true
+tap "xykong/tap", trusted: true
+tap "zmumbauer/local", "https://github.com/zmumbauer/dotfiles.git", trusted: true
 
 # Formulae
 brew "mas"
+brew "actionlint"
 brew "ant"
 brew "aom"
 brew "apr"
@@ -18,6 +23,7 @@ brew "apr-util"
 brew "argon2"
 brew "aria2"
 brew "aribb24"
+brew "asciinema"
 brew "asdf"
 brew "atuin"
 brew "autoconf"
@@ -31,12 +37,14 @@ brew "cairo"
 brew "cffi"
 brew "chromaprint"
 brew "cjson"
+brew "cloudflared"
 brew "cmake"
 brew "coreutils"
 brew "cryptography"
 brew "curl"
 brew "czkawka"
 brew "dav1d"
+brew "dnsmasq"
 brew "fd"
 brew "exiftool"
 brew "eza"
@@ -76,6 +84,7 @@ brew "htop"
 brew "hwloc"
 brew "icu4c@76"
 brew "icu4c@77"
+brew "imessage-exporter"
 brew "imagemagick-full", link: :overwrite
 brew "imath"
 brew "isl"
@@ -146,6 +155,7 @@ brew "libxrender"
 brew "libyaml"
 brew "libzip"
 brew "little-cms2"
+brew "llmfit"
 brew "llvm"
 brew "lpeg"
 brew "lua"
@@ -156,6 +166,7 @@ brew "lz4"
 brew "lzo"
 brew "m4"
 brew "mbedtls"
+brew "mkcert"
 brew "mpdecimal"
 brew "mpd"
 brew "mpfr"
@@ -192,7 +203,7 @@ brew "php"
 brew "pinentry"
 brew "pipx"
 brew "pixman"
-brew "pkg-config"
+brew "pkgconf"
 brew "pmix"
 brew "poppler"
 brew "postgresql@14"
@@ -216,7 +227,7 @@ brew "rubberband"
 brew "rust"
 brew "rwx-research/tap/abq"
 brew "sane-backends"
-brew "sdl2"
+brew "sdl2-compat"
 brew "sevenzip"
 brew "shared-mime-info"
 brew "snappy"
@@ -269,6 +280,7 @@ cask "adobe-creative-cloud"
 cask "alcove"
 cask "alfred"
 cask "amazon-photos"
+cask "anki"
 cask "antigravity"
 cask "antinote"
 cask "balenaetcher"
@@ -309,13 +321,16 @@ cask "insta360-link-controller"
 cask "jetbrains-toolbox"
 cask "keyclu"
 cask "kodi"
+cask "libreoffice"
 cask "little-snitch"
+cask "macfuse"
 cask "megasync"
 cask "micro-snitch"
 cask "mixed-in-key"
 cask "miro"
 cask "netdownloadhelpercoapp"
 cask "netspot"
+cask "obsidian"
 cask "ollama-app"
 cask "orbstack"
 cask "pearcleaner"
@@ -336,6 +351,7 @@ cask "the-unarchiver"
 cask "tinymediamanager"
 cask "transmission"
 cask "tuxguitar"
+cask "typora"
 cask "ultimate-vocal-remover"
 cask "unifi-identity-endpoint"
 cask "upscayl"
@@ -348,6 +364,7 @@ cask "vlc"
 cask "wacom-tablet"
 cask "wezterm"
 cask "wireshark-app"
+cask "xykong/tap/flux-markdown"
 cask "zen"
 cask "zmumbauer-cactusvpn"
 cask "zmumbauer-fluidvoice"
@@ -399,11 +416,24 @@ mas "ToothFairy", id: 1191449274
 mas "Twingate", id: 1501592214
 mas "Vythm", id: 1550581532
 mas "Windows App", id: 1295203466
+
 # Go tools
 # go "golang.org/x/tools/gopls"
 
 # Cargo tools
 # cargo "cargo-nextest"
 
-# uv tools
-uv "specify-cli"
+# uv tools (replaces pipx; `brew bundle` installs these natively)
+uv "mcp-proxy"
+uv "sherlock-project"
+uv "specify-cli", source: "git+https://github.com/github/spec-kit.git"
+
+# npm global packages are NOT declared here. `brew bundle` resolves npm via
+# Homebrew's own node, but the globals live in the asdf-managed node, so every
+# entry would report permanently unsatisfied. They are installed by
+# `setup --packages` instead.
+
+# Also NOT captured here, by design:
+#   fabric - installed via pipx from a local checkout (~/code/fabric). Local
+#            paths do not resolve on another machine, so it cannot be declared
+#            as a uv/npm entry. Reinstall by hand after cloning that repo.
