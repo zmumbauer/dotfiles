@@ -18,6 +18,7 @@ RUN_SHELL=0
 RUN_GIT_CONFIG=0
 RUN_VIM=0
 RUN_ASDF=0
+RUN_PACKAGES=0
 RUN_NVIM=0
 RUN_TMUX=0
 RUN_WEZTERM=0
@@ -50,6 +51,7 @@ Sections:
   --git       Symlink the git config file
   --vim       Symlink the Vim config
   --asdf      Install asdf plugins and their latest versions
+  --packages  Install global npm packages (uv tools come from the Brewfile)
   --nvim      Symlink the Neovim config and install lazy.nvim
   --tmux      Symlink tmux config and install TPM
   --wezterm   Symlink the WezTerm config
@@ -71,6 +73,7 @@ enable_all_sections() {
   RUN_GIT_CONFIG=1
   RUN_VIM=1
   RUN_ASDF=1
+  RUN_PACKAGES=1
   RUN_NVIM=1
   RUN_TMUX=1
   RUN_WEZTERM=1
@@ -100,6 +103,7 @@ print_selected_sections() {
   [[ "$RUN_GIT_CONFIG" -eq 1 ]] && sections+=("git")
   [[ "$RUN_VIM" -eq 1 ]] && sections+=("vim")
   [[ "$RUN_ASDF" -eq 1 ]] && sections+=("asdf")
+  [[ "$RUN_PACKAGES" -eq 1 ]] && sections+=("packages")
   [[ "$RUN_NVIM" -eq 1 ]] && sections+=("nvim")
   [[ "$RUN_TMUX" -eq 1 ]] && sections+=("tmux")
   [[ "$RUN_WEZTERM" -eq 1 ]] && sections+=("wezterm")
@@ -155,6 +159,10 @@ parse_args() {
         ;;
       --asdf)
         RUN_ASDF=1
+        section_flag_seen=1
+        ;;
+      --packages)
+        RUN_PACKAGES=1
         section_flag_seen=1
         ;;
       --nvim)
@@ -519,7 +527,8 @@ install_linux_homebrew_prerequisites() {
     curl \
     file \
     git \
-    procps
+    procps \
+    sudo
 }
 
 configure_login_shell_for_user() {
@@ -534,6 +543,47 @@ configure_login_shell_for_user() {
   ensure_allowed_shell "$zsh_path" || return 1
   log "Changing login shell for $username to $zsh_path..."
   usermod --shell "$zsh_path" "$username"
+}
+
+configure_proxmox_pct_access() {
+  local pct_path=""
+  local sudoers_path=""
+  local wrapper_path="/usr/local/bin/pct"
+
+  if [[ -x /usr/sbin/pct ]]; then
+    pct_path="/usr/sbin/pct"
+  else
+    pct_path="$(command -v pct 2>/dev/null || true)"
+  fi
+  if [[ -z "$pct_path" || ! -d /etc/pve ]]; then
+    return 0
+  fi
+
+  if ! command_exists visudo || ! command_exists sudo; then
+    warn "Cannot configure pct access because sudo or visudo is unavailable."
+    return 1
+  fi
+
+  sudoers_path="/etc/sudoers.d/dotfiles-pct-$1"
+
+  log "Granting '$1' passwordless access to $pct_path..."
+  printf '%s ALL=(root) NOPASSWD: %s\n' "$1" "$pct_path" > "$sudoers_path"
+  chmod 0440 "$sudoers_path"
+  if ! visudo -cf "$sudoers_path" >/dev/null; then
+    rm -f "$sudoers_path"
+    warn "Generated pct sudoers rule failed validation."
+    return 1
+  fi
+
+  {
+    printf '%s\n' '#!/bin/sh'
+    printf '%s\n' '# Managed by the dotfiles remote-dev installer.'
+    printf 'exec sudo -n %q "$@"\n' "$pct_path"
+  } > "$wrapper_path"
+  chmod 0755 "$wrapper_path"
+  chown root:root "$wrapper_path"
+
+  log "Configured $wrapper_path so '$1' and Codex can invoke pct directly."
 }
 
 handoff_root_remote_dev_install() {
@@ -565,6 +615,7 @@ handoff_root_remote_dev_install() {
   runuser --user "$username" -- env "${child_env[@]}" \
     /bin/bash -c 'cd "$1" && shift && exec ./install.sh "$@"' bash "$target_repo" "$@"
   configure_login_shell_for_user "$username"
+  configure_proxmox_pct_access "$username"
 
   log "Remote-dev setup complete for '$username'. Start a login shell with: su - $username"
 }
@@ -1064,6 +1115,49 @@ install_asdf_libraries() {
   ensure_asdf_version nodejs
 }
 
+# Global npm packages. These deliberately live here rather than in the Brewfile:
+# `brew bundle` resolves npm through Homebrew's node, but these are installed
+# into the asdf-managed node, so Brewfile entries would never report satisfied.
+NPM_GLOBAL_PACKAGES=(
+  "mirroir-mcp"
+)
+
+npm_global_installed() {
+  local package_name="$1"
+  npm ls --global --depth=0 --parseable "$package_name" >/dev/null 2>&1
+}
+
+ensure_npm_global() {
+  local package_name="$1"
+
+  if npm_global_installed "$package_name"; then
+    log "npm global '$package_name' already installed. Skipping."
+    return 0
+  fi
+
+  log "Installing npm global '$package_name'..."
+  if ! npm install --global "$package_name"; then
+    warn "Failed to install npm global '$package_name'."
+  fi
+}
+
+install_language_packages() {
+  if command_exists npm; then
+    local package_name=""
+    for package_name in "${NPM_GLOBAL_PACKAGES[@]}"; do
+      ensure_npm_global "$package_name"
+    done
+  else
+    warn "npm is not available on PATH. Skipping npm global packages."
+  fi
+
+  # uv tools are declared in the Brewfile and installed by the --homebrew
+  # section. Nothing to do here beyond flagging a missing uv.
+  if ! command_exists uv; then
+    warn "uv is not available on PATH. Brewfile uv tools will not be installed."
+  fi
+}
+
 ensure_git_clone() {
   local repository_url="$1"
   local destination_path="$2"
@@ -1170,6 +1264,10 @@ main() {
 
   if [[ "$RUN_ASDF" -eq 1 ]]; then
     install_asdf_libraries
+  fi
+
+  if [[ "$RUN_PACKAGES" -eq 1 ]]; then
+    install_language_packages
   fi
 
   if [[ "$RUN_NVIM" -eq 1 ]]; then

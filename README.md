@@ -70,7 +70,11 @@ shell to the installed zsh, and then runs the matching `github`, `shell`, and
 lives in `./Brewfile.remote-dev`. When run as root on an APT-based Linux host,
 including Proxmox/Debian, it prompts to select an existing non-root development
 user or create one. It then installs Homebrew and configures the environment as
-that user because Homebrew does not support running as root.
+that user because Homebrew does not support running as root. On a Proxmox host,
+the selected user also receives passwordless sudo access to the host's `pct`
+executable and a `/usr/local/bin/pct` wrapper so remote Codex sessions can invoke it
+directly. Treat that account as a privileged administrator: unrestricted `pct`
+access can control containers and is effectively root-level access.
 
 For unattended root setup, select or create the account with environment
 variables:
