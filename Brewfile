@@ -71,9 +71,11 @@ brew "git"
 brew "git-delta"
 brew "git-extras"
 brew "glib"
+brew "glow"
 brew "gmp"
 brew "gnupg"
 brew "gnutls"
+brew "go"
 brew "gpgme"
 brew "graphite2"
 brew "gromgit/brewtils/taproom"
@@ -417,8 +419,9 @@ mas "Twingate", id: 1501592214
 mas "Vythm", id: 1550581532
 mas "Windows App", id: 1295203466
 
-# Go tools
-# go "golang.org/x/tools/gopls"
+# Go tools are installed by `setup --packages`, not here. `brew bundle` has no
+# `go` verb, and the tools below are not packaged in Homebrew anyway.
+#   mermaid-ascii - ASCII mermaid renderer used by scripts/glowm
 
 # Cargo tools
 # cargo "cargo-nextest"

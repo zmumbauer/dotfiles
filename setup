@@ -19,6 +19,7 @@ RUN_GIT_CONFIG=0
 RUN_VIM=0
 RUN_ASDF=0
 RUN_PACKAGES=0
+RUN_SCRIPTS=0
 RUN_NVIM=0
 RUN_TMUX=0
 RUN_WEZTERM=0
@@ -51,7 +52,8 @@ Sections:
   --git       Symlink the git config file
   --vim       Symlink the Vim config
   --asdf      Install asdf plugins and their latest versions
-  --packages  Install global npm packages (uv tools come from the Brewfile)
+  --packages  Install global npm and Go packages (uv tools come from the Brewfile)
+  --scripts   Symlink the helper scripts into ~/.local/bin
   --nvim      Symlink the Neovim config and install lazy.nvim
   --tmux      Symlink tmux config and install TPM
   --wezterm   Symlink the WezTerm config
@@ -74,6 +76,7 @@ enable_all_sections() {
   RUN_VIM=1
   RUN_ASDF=1
   RUN_PACKAGES=1
+  RUN_SCRIPTS=1
   RUN_NVIM=1
   RUN_TMUX=1
   RUN_WEZTERM=1
@@ -104,6 +107,7 @@ print_selected_sections() {
   [[ "$RUN_VIM" -eq 1 ]] && sections+=("vim")
   [[ "$RUN_ASDF" -eq 1 ]] && sections+=("asdf")
   [[ "$RUN_PACKAGES" -eq 1 ]] && sections+=("packages")
+  [[ "$RUN_SCRIPTS" -eq 1 ]] && sections+=("scripts")
   [[ "$RUN_NVIM" -eq 1 ]] && sections+=("nvim")
   [[ "$RUN_TMUX" -eq 1 ]] && sections+=("tmux")
   [[ "$RUN_WEZTERM" -eq 1 ]] && sections+=("wezterm")
@@ -163,6 +167,10 @@ parse_args() {
         ;;
       --packages)
         RUN_PACKAGES=1
+        section_flag_seen=1
+        ;;
+      --scripts)
+        RUN_SCRIPTS=1
         section_flag_seen=1
         ;;
       --nvim)
@@ -1023,6 +1031,10 @@ symlink_shell_configs() {
   ensure_symlink "$REPO_ROOT/config_files/atuin/themes/devbox.toml" "$HOME/.config/atuin/themes/devbox.toml"
 }
 
+symlink_scripts() {
+  ensure_symlink "$REPO_ROOT/scripts/glowm" "$HOME/.local/bin/glowm"
+}
+
 symlink_git_config() {
   ensure_symlink "$REPO_ROOT/config_files/gitconfig" "$HOME/.gitconfig"
 }
@@ -1141,6 +1153,37 @@ ensure_npm_global() {
   fi
 }
 
+# Go tools. Like the npm globals above these cannot be declared in the
+# Brewfile: `brew bundle` has no `go` verb, and none of these are packaged in
+# Homebrew. `go install` puts the binaries in $(go env GOPATH)/bin, which the
+# zshrc adds to PATH.
+GO_PACKAGES=(
+  "github.com/AlexanderGrooff/mermaid-ascii@latest"
+)
+
+# "github.com/owner/tool@latest" -> "tool"
+go_package_binary() {
+  local package_spec="${1%@*}"
+  printf '%s\n' "${package_spec##*/}"
+}
+
+ensure_go_package() {
+  local package_spec="$1"
+  local binary_name=""
+
+  binary_name="$(go_package_binary "$package_spec")"
+
+  if command_exists "$binary_name"; then
+    log "Go tool '$binary_name' already installed. Skipping."
+    return 0
+  fi
+
+  log "Installing Go tool '$package_spec'..."
+  if ! go install "$package_spec"; then
+    warn "Failed to install Go tool '$package_spec'."
+  fi
+}
+
 install_language_packages() {
   if command_exists npm; then
     local package_name=""
@@ -1149,6 +1192,15 @@ install_language_packages() {
     done
   else
     warn "npm is not available on PATH. Skipping npm global packages."
+  fi
+
+  if command_exists go; then
+    local go_package=""
+    for go_package in "${GO_PACKAGES[@]}"; do
+      ensure_go_package "$go_package"
+    done
+  else
+    warn "go is not available on PATH. Skipping Go tools."
   fi
 
   # uv tools are declared in the Brewfile and installed by the --homebrew
@@ -1268,6 +1320,10 @@ main() {
 
   if [[ "$RUN_PACKAGES" -eq 1 ]]; then
     install_language_packages
+  fi
+
+  if [[ "$RUN_SCRIPTS" -eq 1 ]]; then
+    symlink_scripts
   fi
 
   if [[ "$RUN_NVIM" -eq 1 ]]; then

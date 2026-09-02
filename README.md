@@ -8,6 +8,8 @@ This repo manages shell, tmux, editor, and related local configuration.
 - `vendor/` holds third-party repos managed in-tree, such as `ohmyzsh` and `ohmytmux`.
 - `nvim/` is the first-party Neovim overlay for this repo; its vendored base config lives under `nvim/vendor/neovim-dotfiles`.
 - `vim/` is a small classic Vim runtime kept for remote or minimal machines that do not have Neovim.
+- `scripts/` holds helper scripts. Those meant to be run directly are symlinked
+  into `~/.local/bin` by `setup --scripts`.
 
 ## Bootstrap
 
@@ -22,7 +24,8 @@ have another executable with that name earlier on `PATH`.
 
 `./install.sh` delegates to the repo's top-level `setup` script and is safe to re-run.
 Package installation is managed from `Brewfile` via `brew bundle`, including
-Homebrew formulae, casks, Mac App Store apps, and `uv`/`go`/`cargo` tools.
+Homebrew formulae, casks, Mac App Store apps, and `uv` tools. Global npm and Go
+packages are installed separately by `./install.sh --packages`.
 If you want Mac App Store apps installed automatically, sign into the App Store
 before running the installer or rerun it afterward.
 
@@ -218,3 +221,26 @@ add_mas_app SiteSucker
 ```
 
 The underlying script lives at `./scripts/add_mas_app.sh`. It uses `mas search` for results, `gum filter` for the TUI picker, keeps the `mas` entries in `Brewfile` sorted by app name, and runs `mas install` for newly added apps when the App Store is signed in.
+
+## Reading Markdown With Mermaid Diagrams
+
+`glowm` wraps [glow](https://github.com/charmbracelet/glow) and renders
+` ```mermaid ` blocks as ASCII art with
+[mermaid-ascii](https://github.com/AlexanderGrooff/mermaid-ascii) before glow
+sees the document. Everything else is passed through untouched, and unknown
+flags are forwarded to glow.
+
+```zsh
+glowm README.md
+glowm -p README.md      # pager mode
+cat README.md | glowm - # stdin
+```
+
+The script lives at `./scripts/glowm` and is symlinked into `~/.local/bin` by
+`setup --scripts`. Its two dependencies come from different places: `glow` and
+`go` are declared in the `Brewfile`, while `mermaid-ascii` is not packaged in
+Homebrew and is installed with `go install` by `setup --packages`. Go binaries
+land in `$(go env GOPATH)/bin`, which the zshrc adds to `PATH`.
+
+If a diagram fails to render, `glowm` prints the original mermaid source in the
+code block rather than an empty one, so the content is never lost.

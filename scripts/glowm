@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+
+#
+# glowm - glow with mermaid support
+#
+# Pre-processes markdown so that ```mermaid blocks are rendered as ASCII
+# before the document is handed to glow.
+#
+# Requirements:
+#   - glow          (brew install glow)
+#   - mermaid-ascii (setup --packages, or:
+#                    go install github.com/AlexanderGrooff/mermaid-ascii@latest)
+#
+# Usage:
+#   glowm README.md
+#   glowm -p README.md      # pager mode
+#   cat README.md | glowm - # stdin
+#
+# Adapted from https://gist.github.com/olavocarvalho/749053cb283642044064b93f183a056b
+#
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: glowm [glow options] [file|-]
+
+Renders markdown with glow, converting ```mermaid blocks to ASCII first.
+Any option that is not recognised here is passed through to glow.
+
+  glowm README.md
+  glowm -p README.md      pager mode
+  cat README.md | glowm - read from stdin
+EOF
+}
+
+check_deps() {
+  local missing=()
+
+  command -v glow >/dev/null 2>&1 || missing+=("glow")
+  command -v mermaid-ascii >/dev/null 2>&1 || missing+=("mermaid-ascii")
+
+  if [[ ${#missing[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  printf 'Error: missing dependencies: %s\n' "${missing[*]}" >&2
+  printf 'Install with:\n' >&2
+  case " ${missing[*]} " in
+  *" glow "*) printf '  brew install glow\n' >&2 ;;
+  esac
+  case " ${missing[*]} " in
+  *" mermaid-ascii "*)
+    printf '  go install github.com/AlexanderGrooff/mermaid-ascii@latest\n' >&2
+    ;;
+  esac
+  exit 1
+}
+
+# Rewrite ```mermaid blocks into plain code blocks holding ASCII diagrams.
+# Reads markdown on stdin, writes the processed document to stdout.
+#
+# $1 is a scratch file used to hand each diagram to mermaid-ascii. It is
+# truncated and reused per block rather than a mktemp per diagram.
+process_mermaid() {
+  awk -v tmpfile="$1" '
+  function render(   i, cmd, line, count, out) {
+    for (i = 1; i <= n; i++) {
+      print lines[i] > tmpfile
+    }
+    close(tmpfile)
+
+    count = 0
+    cmd = "mermaid-ascii --file \"" tmpfile "\" 2>/dev/null"
+    while ((cmd | getline line) > 0) {
+      out[++count] = line
+    }
+    close(cmd)
+
+    print "```"
+    if (count > 0) {
+      for (i = 1; i <= count; i++) {
+        print out[i]
+      }
+    } else {
+      # mermaid-ascii could not render this diagram. Fall back to the source
+      # so the content is still visible instead of an empty block.
+      for (i = 1; i <= n; i++) {
+        print lines[i]
+      }
+    }
+    print "```"
+  }
+
+  BEGIN { in_mermaid = 0; n = 0 }
+
+  /^[[:space:]]*```mermaid[[:space:]]*$/ {
+    in_mermaid = 1
+    n = 0
+    next
+  }
+
+  /^[[:space:]]*```[[:space:]]*$/ && in_mermaid {
+    in_mermaid = 0
+    render()
+    next
+  }
+
+  in_mermaid {
+    lines[++n] = $0
+    next
+  }
+
+  { print }
+
+  END {
+    # Unterminated mermaid block. Emit it verbatim so nothing is swallowed.
+    if (in_mermaid) {
+      print "```mermaid"
+      for (i = 1; i <= n; i++) {
+        print lines[i]
+      }
+    }
+  }
+  '
+}
+
+main() {
+  local glow_args=()
+  local input_file=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -)
+      input_file="-"
+      shift
+      ;;
+    --)
+      shift
+      if [[ $# -gt 0 ]]; then
+        input_file="$1"
+        shift
+      fi
+      ;;
+    -*)
+      glow_args+=("$1")
+      shift
+      ;;
+    *)
+      input_file="$1"
+      shift
+      ;;
+    esac
+  done
+
+  check_deps
+
+  if [[ -n "$input_file" && "$input_file" != "-" && ! -f "$input_file" ]]; then
+    printf 'Error: file not found: %s\n' "$input_file" >&2
+    exit 1
+  fi
+
+  if [[ -z "$input_file" ]] && [[ -t 0 ]]; then
+    usage >&2
+    exit 1
+  fi
+
+  local tmpfile=""
+  tmpfile="$(mktemp -t glowm)"
+  # shellcheck disable=SC2064 # expand tmpfile now, not at trap time
+  trap "rm -f '$tmpfile'" EXIT
+
+  # ${glow_args[@]+...} keeps an empty array from tripping `set -u` on the
+  # bash 3.2 that ships with macOS.
+  if [[ -z "$input_file" || "$input_file" == "-" ]]; then
+    process_mermaid "$tmpfile"
+  else
+    process_mermaid "$tmpfile" <"$input_file"
+  fi | glow ${glow_args[@]+"${glow_args[@]}"} -
+}
+
+main "$@"
