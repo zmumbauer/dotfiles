@@ -7,3 +7,7 @@ vim/.netrwhist
 vim/undos/
 .gemini
 .serena
+
+# Packaged skill bundles. The unpacked source directory is the tracked copy;
+# the .skill zip is a build artifact that goes stale against it.
+*.skill

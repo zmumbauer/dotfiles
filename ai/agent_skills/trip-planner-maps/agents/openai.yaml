@@ -1,0 +1,7 @@
+interface:
+  display_name: "Trip Planner Maps"
+  short_description: "Turn travel workbooks into routed itineraries"
+  default_prompt: "Use $trip-planner-maps to turn my travel workbook into an editable Markdown itinerary."
+
+policy:
+  allow_implicit_invocation: true
