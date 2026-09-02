@@ -31,6 +31,10 @@ co() {
   fi
 }
 
+pve() {
+  ssh -t root@pve 'exec su - zach'
+}
+
 export BAT_THEME="Visual Studio Dark+"
 
 if command -v bat >/dev/null 2>&1; then

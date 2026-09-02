@@ -316,11 +316,6 @@ asdfirb() {
 # INITIALIZATION
 # ==============================================================================
 
-# Lazy-load nvm
-if [ -f ~/.nvm.zsh ]; then
-  source ~/.nvm.zsh
-fi
-
 # Lazy-load asdf
 if command -v brew &>/dev/null; then
   BREW_PREFIX="$(brew --prefix 2>/dev/null)"
@@ -375,3 +370,6 @@ export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 if command -v thefuck >/dev/null 2>&1; then
   eval "$(thefuck --alias)"
 fi
+
+# Added by Antigravity IDE
+export PATH="/Users/zachmumbauer/.antigravity-ide/antigravity-ide/bin:$PATH"
