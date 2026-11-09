@@ -400,6 +400,7 @@ set -g prefix C-a
 # keep tmux window and pane numbering zero-based
 set -g base-index 0 #!important
 setw -g pane-base-index 0 #!important
+bind 0 select-window -t :=0 # Oh My Tmux binds 0 to window 10 for base-index 1
 
 # nested sessions
 bind-key a send-prefix
