@@ -474,6 +474,9 @@ set -g @continuum-save-interval '10'
 set -g @resurrect-capture-pane-contents 'on'
 set -g @resurrect-save 'M-s'
 set -g @resurrect-restore 'R'
+# continuum can wrongly detect a second server and silently skip restore and autosave
+set -g @resurrect-hook-post-restore-all '"$HOME/dotfiles/config_files/tmux-continuum-guard.sh" --after-restore'
+run -b '"$HOME/dotfiles/config_files/tmux-continuum-guard.sh" >/dev/null 2>&1'
 
 
 # -- clipboard (OSC 52) ----------------------------------------------------------
